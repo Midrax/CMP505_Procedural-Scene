@@ -19,6 +19,7 @@
 #include "SpriteFont.h"
 #include "VertexTypes.h"
 #include "WICTextureLoader.h"
+#include "Audio.h"
 //
 
 #pragma once

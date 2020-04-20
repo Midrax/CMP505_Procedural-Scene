@@ -31,6 +31,9 @@ void Game::Initialize(HWND window, int width, int height)
 
     m_timer.SetFixedTimeStep(true);
     m_timer.SetTargetElapsedSeconds(1.0 / 60);
+
+	// Initialize input
+	input.Initialize(window);
 }
 
 #pragma region Frame Update
@@ -50,7 +53,10 @@ void Game::Update(DX::StepTimer const& timer)
 {
     float elapsedTime = float(timer.GetElapsedSeconds());
 
-    // TODO: Add your game logic here.
+    // Add your game logic here.
+
+	input.Update();
+
     elapsedTime;
 }
 #pragma endregion
@@ -105,24 +111,28 @@ void Game::Clear()
 // Message handlers
 void Game::OnActivated()
 {
-    // TODO: Game is becoming active window.
+    // Game is becoming active window.
+	input.OnActivated();
 }
 
 void Game::OnDeactivated()
 {
-    // TODO: Game is becoming background window.
+    // Game is becoming background window.
+	input.OnDeactivated();
 }
 
 void Game::OnSuspending()
 {
-    // TODO: Game is being power-suspended (or minimized).
+    // Game is being power-suspended (or minimized).
+	input.OnSuspending();
 }
 
 void Game::OnResuming()
 {
     m_timer.ResetElapsedTime();
 
-    // TODO: Game is being power-resumed (or returning from minimize).
+    // Game is being power-resumed (or returning from minimize).
+	input.OnResuming();
 }
 
 void Game::OnWindowMoved()

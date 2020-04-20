@@ -6,6 +6,7 @@
 
 #include "DeviceResources.h"
 #include "StepTimer.h"
+#include "InputSystem.h"
 
 
 // A basic game implementation that creates a D3D11 device and
@@ -52,4 +53,7 @@ private:
 
     // Rendering loop timer.
     DX::StepTimer                           m_timer;
+
+	// Input System
+	InputSystem								input;
 };
