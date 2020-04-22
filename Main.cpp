@@ -4,6 +4,7 @@
 
 #include "pch.h"
 #include "Game.h"
+#include <Dbt.h>
 
 using namespace DirectX;
 
@@ -13,6 +14,7 @@ namespace
 };
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 // Indicates to hybrid graphics systems to prefer the discrete part by default
 extern "C"
@@ -35,8 +37,9 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
         return 1;
 
     g_game = std::make_unique<Game>();
-
     // Register class and create window
+
+	HDEVNOTIFY hNewAudio = nullptr;
     {
         // Register class
         WNDCLASSEXW wcex = {};
@@ -77,6 +80,14 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
         GetClientRect(hwnd, &rc);
 
         g_game->Initialize(hwnd, rc.right - rc.left, rc.bottom - rc.top);
+		// Listen for new audio devices
+		DEV_BROADCAST_DEVICEINTERFACE filter = {};
+		filter.dbcc_size = sizeof(filter);
+		filter.dbcc_devicetype = DBT_DEVTYP_DEVICEINTERFACE;
+		filter.dbcc_classguid = KSCATEGORY_AUDIO;
+
+		hNewAudio = RegisterDeviceNotification(hwnd, &filter,
+			DEVICE_NOTIFY_WINDOW_HANDLE);
     }
 
     // Main message loop
@@ -96,6 +107,9 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 
     g_game.reset();
 
+	if (hNewAudio)
+		UnregisterDeviceNotification(hNewAudio);
+
     CoUninitialize();
 
     return (int) msg.wParam;
@@ -114,6 +128,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     // TODO: Set s_fullscreen to true if defaulting to fullscreen.
 
     auto game = reinterpret_cast<Game*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
+	if (ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam))
+		return true;
 
     switch (message)
     {
@@ -195,7 +211,30 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 game->OnDeactivated();
             }
         }
+		Keyboard::ProcessMessage(message, wParam, lParam);
+		Mouse::ProcessMessage(message, wParam, lParam);
         break;
+
+	case WM_INPUT:
+	case WM_MOUSEMOVE:
+	case WM_LBUTTONDOWN:
+	case WM_LBUTTONUP:
+	case WM_RBUTTONDOWN:
+	case WM_RBUTTONUP:
+	case WM_MBUTTONDOWN:
+	case WM_MBUTTONUP:
+	case WM_MOUSEWHEEL:
+	case WM_XBUTTONDOWN:
+	case WM_XBUTTONUP:
+	case WM_MOUSEHOVER:
+		Mouse::ProcessMessage(message, wParam, lParam);
+		break;
+
+	case WM_KEYDOWN:
+	case WM_KEYUP:
+	case WM_SYSKEYUP:
+		Keyboard::ProcessMessage(message, wParam, lParam);
+		break;
 
     case WM_POWERBROADCAST:
         switch (wParam)
@@ -251,12 +290,33 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
             s_fullscreen = !s_fullscreen;
         }
+		Keyboard::ProcessMessage(message, wParam, lParam);
         break;
 
     case WM_MENUCHAR:
         // A menu is active and the user presses a key that does not correspond
         // to any mnemonic or accelerator key. Ignore so we don't produce an error beep.
         return MAKELRESULT(0, MNC_CLOSE);
+
+	case WM_DEVICECHANGE:
+		if (wParam == DBT_DEVICEARRIVAL)
+		{
+			auto pDev = reinterpret_cast<PDEV_BROADCAST_HDR>(lParam);
+			if (pDev)
+			{
+				if (pDev->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE)
+				{
+					auto pInter = reinterpret_cast<
+						const PDEV_BROADCAST_DEVICEINTERFACE>(pDev);
+					if (pInter->dbcc_classguid == KSCATEGORY_AUDIO)
+					{
+						if (game)
+							game->OnNewAudioDevice();
+					}
+				}
+			}
+		}
+		return 0;
     }
 
     return DefWindowProc(hWnd, message, wParam, lParam);

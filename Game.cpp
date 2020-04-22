@@ -8,6 +8,7 @@
 extern void ExitGame();
 
 using namespace DirectX;
+using namespace DirectX::SimpleMath;
 
 using Microsoft::WRL::ComPtr;
 
@@ -15,6 +16,11 @@ Game::Game() noexcept(false)
 {
     m_deviceResources = std::make_unique<DX::DeviceResources>();
     m_deviceResources->RegisterDeviceNotify(this);
+}
+
+Game::~Game()
+{
+	audio.~AudioModule();
 }
 
 // Initialize the Direct3D resources required to run.
@@ -32,8 +38,22 @@ void Game::Initialize(HWND window, int width, int height)
     m_timer.SetFixedTimeStep(true);
     m_timer.SetTargetElapsedSeconds(1.0 / 60);
 
+	// Initialize Imgui
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO(); (void)io;
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+	ImGui::StyleColorsDark();
+	ImGui_ImplWin32_Init(window);
+	ImGui_ImplDX11_Init(m_deviceResources->GetD3DDevice(), m_deviceResources->GetD3DDeviceContext());
+
+	// Initialize audio
+	audio.Initialize();
+
 	// Initialize input
 	input.Initialize(window);
+
+
 }
 
 #pragma region Frame Update
@@ -44,7 +64,7 @@ void Game::Tick()
     {
         Update(m_timer);
     });
-
+	UpdateGUI();
     Render();
 }
 
@@ -55,7 +75,12 @@ void Game::Update(DX::StepTimer const& timer)
 
     // Add your game logic here.
 
+	audio.Update();
 	input.Update();
+
+	if (input.getGameInput().escape) {
+		ExitGame();
+	}
 
     elapsedTime;
 }
@@ -81,6 +106,8 @@ void Game::Render()
 
     m_deviceResources->PIXEndEvent();
 
+	ImGui::Render();
+	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
     // Show the new frame.
     m_deviceResources->Present();
 }
@@ -112,19 +139,17 @@ void Game::Clear()
 void Game::OnActivated()
 {
     // Game is becoming active window.
-	input.OnActivated();
 }
 
 void Game::OnDeactivated()
 {
     // Game is becoming background window.
-	input.OnDeactivated();
 }
 
 void Game::OnSuspending()
 {
     // Game is being power-suspended (or minimized).
-	input.OnSuspending();
+	audio.OnSuspending();
 }
 
 void Game::OnResuming()
@@ -132,7 +157,7 @@ void Game::OnResuming()
     m_timer.ResetElapsedTime();
 
     // Game is being power-resumed (or returning from minimize).
-	input.OnResuming();
+	audio.OnResuming();
 }
 
 void Game::OnWindowMoved()
@@ -179,6 +204,9 @@ void Game::CreateWindowSizeDependentResources()
 void Game::OnDeviceLost()
 {
     // TODO: Add Direct3D resource cleanup here.
+	ImGui_ImplDX11_Shutdown();
+	ImGui_ImplWin32_Shutdown();
+	ImGui::DestroyContext();
 }
 
 void Game::OnDeviceRestored()
@@ -186,5 +214,23 @@ void Game::OnDeviceRestored()
     CreateDeviceDependentResources();
 
     CreateWindowSizeDependentResources();
+}
+
+
+void Game::UpdateGUI() 
+{
+	// Start the Dear ImGui frame
+	ImGui_ImplDX11_NewFrame();
+	ImGui_ImplWin32_NewFrame();
+	ImGui::NewFrame();
+	if (show_window)
+	{
+		ImGui::Begin("Window", &show_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
+		ImGui::Text("Hello from another window!");
+		if (ImGui::Button("Close Me"))
+			show_window = false;
+		ImGui::End();
+	}
+
 }
 #pragma endregion
