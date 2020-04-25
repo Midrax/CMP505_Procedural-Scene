@@ -11,6 +11,9 @@
     <Filter Include="ImGui">
       <UniqueIdentifier>{0862a586-55de-4443-b305-edd3ff90e61a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="AssImp">
+      <UniqueIdentifier>{271fb820-ba13-44f1-bd3e-cf2ba5bf4a56}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
@@ -48,6 +51,18 @@
     <ClInclude Include="imgui_impl_win32.h">
       <Filter>ImGui</Filter>
     </ClInclude>
+    <ClInclude Include="Mesh.h">
+      <Filter>AssImp</Filter>
+    </ClInclude>
+    <ClInclude Include="ModelLoader.h">
+      <Filter>AssImp</Filter>
+    </ClInclude>
+    <ClInclude Include="SafeRelease.hpp">
+      <Filter>AssImp</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureLoader.h">
+      <Filter>AssImp</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
@@ -76,6 +91,12 @@
     <ClCompile Include="imgui_widgets.cpp">
       <Filter>ImGui</Filter>
     </ClCompile>
+    <ClCompile Include="ModelLoader.cpp">
+      <Filter>AssImp</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureLoader.cpp">
+      <Filter>AssImp</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />
@@ -92,5 +113,13 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="PixelShader.hlsl">
+      <Filter>AssImp</Filter>
+    </FxCompile>
+    <FxCompile Include="VertexShader.hlsl">
+      <Filter>AssImp</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

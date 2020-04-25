@@ -60,6 +60,7 @@ void Game::Initialize(HWND window, int width, int height)
 // Executes the basic game loop.
 void Game::Tick()
 {
+	inputCommands = input.getGameInput();
     m_timer.Tick([&]()
     {
         Update(m_timer);
@@ -78,7 +79,7 @@ void Game::Update(DX::StepTimer const& timer)
 	audio.Update();
 	input.Update();
 
-	if (input.getGameInput().escape) {
+	if (inputCommands.escape) {
 		ExitGame();
 	}
 

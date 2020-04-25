@@ -65,6 +65,7 @@ private:
 
 	// Input System
 	InputSystem								input;
+	InputCommands							inputCommands;
 
 	// ImGui variables
 	bool show_window =				true;
