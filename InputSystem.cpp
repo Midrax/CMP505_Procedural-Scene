@@ -140,10 +140,8 @@ void InputSystem::Update()
 
 	if (kb.LeftControl)
 	{
-		m_GameInput.ctrl = true;
+		m_GameInput.ctrl = !m_GameInput.ctrl;
 	}
-	else
-		m_GameInput.ctrl = false;
 
 	if (kb.Escape)
 	{

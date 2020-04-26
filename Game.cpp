@@ -24,6 +24,12 @@ Game::Game() noexcept(false)
 {
     m_deviceResources = std::make_unique<DX::DeviceResources>();
     m_deviceResources->RegisterDeviceNotify(this);
+
+    auto size = m_deviceResources->GetOutputSize();
+    float width = size.right;
+    float height = size.bottom;
+
+    SetCursorPos((int)(width / 2), (int)(height / 2));
 }
 
 Game::~Game()
@@ -262,7 +268,17 @@ void Game::OnDeviceRestored()
 void Game::UpdateCamera()
 {
     auto mouse = input.mouse->GetState();
-
+    if (!inputCommands.ctrl)
+    {
+        input.mouse->SetMode(Mouse::MODE_RELATIVE);
+        auto size = m_deviceResources->GetOutputSize();
+        float width = size.right / 2.f;
+        float height = size.bottom / 2.f;
+        SetCursorPos((int)(width), (int)(height));
+    }
+    else
+        input.mouse->SetMode(Mouse::MODE_ABSOLUTE);
+    
     if (mouse.positionMode == Mouse::MODE_RELATIVE)
     {
         Vector3 delta = Vector3(float(mouse.x), float(mouse.y), 0.f)
@@ -288,7 +304,6 @@ void Game::UpdateCamera()
         }
     }
 
-    input.mouse->SetMode(mouse.leftButton ? Mouse::MODE_RELATIVE : Mouse::MODE_ABSOLUTE);
     Vector3 move = Vector3::Zero;
 
     if (inputCommands.forward)
