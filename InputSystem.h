@@ -45,6 +45,8 @@ struct InputCommands
 class InputSystem
 {
 	public:
+		std::unique_ptr<DirectX::Mouse> mouse;
+
 		void Initialize(HWND window);
 
 		void Update();
@@ -55,6 +57,5 @@ class InputSystem
 		bool m_quitApp;
 		InputCommands m_GameInput;
 		std::unique_ptr<DirectX::Keyboard> m_keyboard;
-		std::unique_ptr<DirectX::Mouse> m_mouse;
 };
 

@@ -51,18 +51,7 @@
     <ClInclude Include="imgui_impl_win32.h">
       <Filter>ImGui</Filter>
     </ClInclude>
-    <ClInclude Include="Mesh.h">
-      <Filter>AssImp</Filter>
-    </ClInclude>
-    <ClInclude Include="ModelLoader.h">
-      <Filter>AssImp</Filter>
-    </ClInclude>
-    <ClInclude Include="SafeRelease.hpp">
-      <Filter>AssImp</Filter>
-    </ClInclude>
-    <ClInclude Include="TextureLoader.h">
-      <Filter>AssImp</Filter>
-    </ClInclude>
+    <ClInclude Include="Camera.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
@@ -91,18 +80,16 @@
     <ClCompile Include="imgui_widgets.cpp">
       <Filter>ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="ModelLoader.cpp">
-      <Filter>AssImp</Filter>
-    </ClCompile>
-    <ClCompile Include="TextureLoader.cpp">
-      <Filter>AssImp</Filter>
-    </ClCompile>
+    <ClCompile Include="Camera.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="directx.ico">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\roomtexture.dds">
       <Filter>Assets</Filter>
     </Image>
   </ItemGroup>
@@ -113,13 +100,5 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="PixelShader.hlsl">
-      <Filter>AssImp</Filter>
-    </FxCompile>
-    <FxCompile Include="VertexShader.hlsl">
-      <Filter>AssImp</Filter>
-    </FxCompile>
   </ItemGroup>
 </Project>

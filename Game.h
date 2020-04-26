@@ -8,6 +8,7 @@
 #include "StepTimer.h"
 #include "InputSystem.h"
 #include "AudioModule.h"
+#include "Camera.h"
 
 // A basic game implementation that creates a D3D11 device and
 // provides a game loop.
@@ -28,9 +29,6 @@ public:
     virtual void OnDeviceLost() override;
     virtual void OnDeviceRestored() override;
 
-	// ImGUI
-	void UpdateGUI();
-
     // Messages
     void OnActivated();
     void OnDeactivated();
@@ -47,6 +45,10 @@ public:
 private:
 
     void Update(DX::StepTimer const& timer);
+    void UpdateCamera();
+    
+    // ImGUI
+    void UpdateGUI();
     void Render();
 
     void Clear();
@@ -59,6 +61,9 @@ private:
 
     // Rendering loop timer.
     DX::StepTimer                           m_timer;
+    
+    // ImGui variables
+    bool show_window =                      true;
 
 	// Audio
 	AudioModule								audio;
@@ -67,7 +72,10 @@ private:
 	InputSystem								input;
 	InputCommands							inputCommands;
 
-	// ImGui variables
-	bool show_window =				true;
+    // Camera                               
+    Camera                                  camera;
 
+    // Room Model
+    std::unique_ptr<DirectX::GeometricPrimitive> m_room;
+    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_roomTex;
 };

@@ -7,8 +7,8 @@ void InputSystem::Initialize(HWND window)
 {
 	// Initialize Keyboard and Mouse
 	m_keyboard = std::make_unique<Keyboard>();
-	m_mouse = std::make_unique<Mouse>();
-	m_mouse->SetWindow(window);
+	mouse = std::make_unique<Mouse>();
+	mouse->SetWindow(window);
 
 	m_GameInput.forward = false;
 	m_GameInput.back = false;
@@ -151,9 +151,7 @@ void InputSystem::Update()
 	}
 	else
 		m_GameInput.escape = false;
-
 }
-
 
 void InputSystem::ControllerUpdate()
 {

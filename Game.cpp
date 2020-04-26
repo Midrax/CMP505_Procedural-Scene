@@ -12,6 +12,14 @@ using namespace DirectX::SimpleMath;
 
 using Microsoft::WRL::ComPtr;
 
+namespace
+{
+    const XMVECTORF32 START_POSITION = { 0.f, -1.5f, 0.f, 0.f };
+    const XMVECTORF32 ROOM_BOUNDS = { 8.f, 6.f, 12.f, 0.f };
+    const float ROTATION_GAIN = 0.004f;
+    const float MOVEMENT_GAIN = 0.07f;
+}
+
 Game::Game() noexcept(false)
 {
     m_deviceResources = std::make_unique<DX::DeviceResources>();
@@ -37,6 +45,8 @@ void Game::Initialize(HWND window, int width, int height)
 
     m_timer.SetFixedTimeStep(true);
     m_timer.SetTargetElapsedSeconds(1.0 / 60);
+    auto device = m_deviceResources->GetD3DDevice();
+    auto context = m_deviceResources->GetD3DDeviceContext();
 
 	// Initialize Imgui
 	IMGUI_CHECKVERSION();
@@ -45,13 +55,16 @@ void Game::Initialize(HWND window, int width, int height)
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 	ImGui::StyleColorsDark();
 	ImGui_ImplWin32_Init(window);
-	ImGui_ImplDX11_Init(m_deviceResources->GetD3DDevice(), m_deviceResources->GetD3DDeviceContext());
+	ImGui_ImplDX11_Init(device, context);
 
 	// Initialize audio
 	audio.Initialize();
 
 	// Initialize input
 	input.Initialize(window);
+
+    // Initialize camera
+    camera.Initialize(START_POSITION.v);
 
 
 }
@@ -75,7 +88,7 @@ void Game::Update(DX::StepTimer const& timer)
     float elapsedTime = float(timer.GetElapsedSeconds());
 
     // Add your game logic here.
-
+    UpdateCamera();
 	audio.Update();
 	input.Update();
 
@@ -103,12 +116,19 @@ void Game::Render()
     auto context = m_deviceResources->GetD3DDeviceContext();
 
     // TODO: Add your rendering code here.
+
+    camera.Render();
+    m_room->Draw(Matrix::Identity, camera.view, camera.projection, Colors::White, m_roomTex.Get());
+    
+    
     context;
 
     m_deviceResources->PIXEndEvent();
 
+    
 	ImGui::Render();
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+
     // Show the new frame.
     m_deviceResources->Present();
 }
@@ -191,15 +211,33 @@ void Game::GetDefaultSize(int& width, int& height) const
 void Game::CreateDeviceDependentResources()
 {
     auto device = m_deviceResources->GetD3DDevice();
+    auto context = m_deviceResources->GetD3DDeviceContext();
 
     // TODO: Initialize device dependent objects here (independent of window size).
+
+    // Room
+    m_room = GeometricPrimitive::CreateBox(context,
+        XMFLOAT3(ROOM_BOUNDS[0], ROOM_BOUNDS[1], ROOM_BOUNDS[2]),
+        false, true);
+
+    DX::ThrowIfFailed(
+        CreateDDSTextureFromFile(device, L"Assets/roomtexture.dds",
+            nullptr, m_roomTex.ReleaseAndGetAddressOf()));
+
     device;
+    context;
 }
 
 // Allocate all memory resources that change on a window SizeChanged event.
 void Game::CreateWindowSizeDependentResources()
 {
     // TODO: Initialize windows-size dependent objects here.
+    auto size = m_deviceResources->GetOutputSize();
+    float backBufferWidth = size.right;
+    float backBufferHeight = size.bottom;
+
+    camera.projection = Matrix::CreatePerspectiveFieldOfView(XMConvertToRadians(70.f),
+        backBufferWidth / backBufferHeight, 0.01f, 100.f);
 }
 
 void Game::OnDeviceLost()
@@ -208,6 +246,10 @@ void Game::OnDeviceLost()
 	ImGui_ImplDX11_Shutdown();
 	ImGui_ImplWin32_Shutdown();
 	ImGui::DestroyContext();
+
+    // Room
+    m_room.reset();
+    m_roomTex.Reset();
 }
 
 void Game::OnDeviceRestored()
@@ -215,6 +257,71 @@ void Game::OnDeviceRestored()
     CreateDeviceDependentResources();
 
     CreateWindowSizeDependentResources();
+}
+
+void Game::UpdateCamera()
+{
+    auto mouse = input.mouse->GetState();
+
+    if (mouse.positionMode == Mouse::MODE_RELATIVE)
+    {
+        Vector3 delta = Vector3(float(mouse.x), float(mouse.y), 0.f)
+            * ROTATION_GAIN;
+
+        camera.pitch -= delta.y;
+        camera.yaw -= delta.x;
+
+        // limit pitch to straight up or straight down
+        // with a little fudge-factor to avoid gimbal lock
+        float limit = XM_PI / 2.0f - 0.01f;
+        camera.pitch = (std::max)(-limit, camera.pitch);
+        camera.pitch = (std::min)(+limit, camera.pitch);
+
+        // keep longitude in sane range by wrapping
+        if (camera.yaw > XM_PI)
+        {
+            camera.yaw -= XM_PI * 2.0f;
+        }
+        else if (camera.yaw < -XM_PI)
+        {
+            camera.yaw += XM_PI * 2.0f;
+        }
+    }
+
+    input.mouse->SetMode(mouse.leftButton ? Mouse::MODE_RELATIVE : Mouse::MODE_ABSOLUTE);
+    Vector3 move = Vector3::Zero;
+
+    if (inputCommands.forward)
+        move.z += 1.f;
+
+    if (inputCommands.back)
+        move.z -= 1.f;
+
+    if (inputCommands.left)
+        move.x += 1.f;
+
+    if (inputCommands.right)
+        move.x -= 1.f;
+
+    if (inputCommands.space)
+        move.y += 1.f;
+
+    if (inputCommands.q_key)
+        move.y -= 1.f;
+
+    Quaternion q = Quaternion::CreateFromYawPitchRoll(camera.yaw, camera.pitch, 0.f);
+
+    move = Vector3::Transform(move, q);
+
+    move *= MOVEMENT_GAIN;
+
+    camera.position += move;
+
+    Vector3 halfBound = (Vector3(ROOM_BOUNDS.v) / Vector3(2.f))
+        - Vector3(0.1f, 0.1f, 0.1f);
+
+    camera.position = Vector3::Min(camera.position, halfBound);
+    camera.position = Vector3::Max(camera.position, -halfBound);
 }
 
 
