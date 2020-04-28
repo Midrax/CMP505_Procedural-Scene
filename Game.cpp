@@ -313,10 +313,10 @@ void Game::UpdateCamera()
         move -= camera.forward;
 
     if (inputCommands.left)
-        camera.rotation.y += ROTATION_GAIN * deltaTime;
+        move -= camera.right;
 
     if (inputCommands.right)
-        camera.rotation.y -= ROTATION_GAIN * deltaTime;
+        move += camera.right;
 
     if (inputCommands.space)
         move.y += 1.f;
