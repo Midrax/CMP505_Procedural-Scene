@@ -11,12 +11,14 @@ public:
 
 	XMMATRIX	view;
 	Vector3		position;
+	Vector3		rotation;
 	Matrix		projection;
-	float		pitch;
-	float		yaw;
+	Vector3		forward;
+	Vector3		right;
+	Vector3		lookAt;
 
 	void Initialize(XMVECTOR start);
-	void Render();
+	void Update();
 
 };
 

@@ -2,19 +2,26 @@
 
 void Camera::Initialize(XMVECTOR start)
 {
-    pitch = 0;
-    yaw = 0;
+    float pitch = 0.f;
+    float yaw = 0.f;
+    float roll = 0.f;
+    rotation = Vector3(pitch, yaw, roll);
+    forward = Vector3(0.f, 0.f, 0.f);
     position = start;
 }
 
-void Camera::Render()
+void Camera::Update()
 {
-    float y = sinf(pitch);
-    float r = cosf(pitch);
-    float z = r * cosf(yaw);
-    float x = r * sinf(yaw);
+    float y = sinf(rotation.x * XM_PI / 180.0f);
+    float r = cosf(rotation.x * XM_PI / 180.0f);
+    float z = r * cosf(rotation.y * XM_PI / 180.0f);
+    float x = r * sinf(rotation.y * XM_PI / 180.0f);
 
-    XMVECTOR lookAt = position + Vector3(x, y, z);
+    forward = Vector3(x, y, z);
+    forward.Normalize();
 
-    view = XMMatrixLookAtRH(position, lookAt, Vector3::Up);
+    forward.Cross(Vector3::UnitY, right);
+    XMVECTOR lookAt = position + forward;
+
+    view = Matrix::CreateLookAt(position, lookAt, Vector3::UnitY);
 }

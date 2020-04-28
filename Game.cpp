@@ -16,8 +16,8 @@ namespace
 {
     const XMVECTORF32 START_POSITION = { 0.f, -1.5f, 0.f, 0.f };
     const XMVECTORF32 ROOM_BOUNDS = { 8.f, 6.f, 12.f, 0.f };
-    const float ROTATION_GAIN = 0.004f;
-    const float MOVEMENT_GAIN = 0.07f;
+    const float ROTATION_GAIN = 24.f;
+    const float MOVEMENT_GAIN = 1.f;
 }
 
 Game::Game() noexcept(false)
@@ -123,7 +123,6 @@ void Game::Render()
 
     // TODO: Add your rendering code here.
 
-    camera.Render();
     m_room->Draw(Matrix::Identity, camera.view, camera.projection, Colors::White, m_roomTex.Get());
     
     
@@ -166,6 +165,7 @@ void Game::Clear()
 void Game::OnActivated()
 {
     // Game is becoming active window.
+    input.Reset();
 }
 
 void Game::OnDeactivated()
@@ -184,6 +184,7 @@ void Game::OnResuming()
     m_timer.ResetElapsedTime();
 
     // Game is being power-resumed (or returning from minimize).
+    input.Reset();
 	audio.OnResuming();
 }
 
@@ -267,56 +268,55 @@ void Game::OnDeviceRestored()
 
 void Game::UpdateCamera()
 {
+    float deltaTime = float(m_timer.GetElapsedSeconds());
+
     auto mouse = input.mouse->GetState();
+
     if (!inputCommands.ctrl)
     {
         input.mouse->SetMode(Mouse::MODE_RELATIVE);
-        auto size = m_deviceResources->GetOutputSize();
-        float width = size.right / 2.f;
-        float height = size.bottom / 2.f;
-        SetCursorPos((int)(width), (int)(height));
     }
     else
+    {
         input.mouse->SetMode(Mouse::MODE_ABSOLUTE);
-    
+    }
     if (mouse.positionMode == Mouse::MODE_RELATIVE)
     {
-        Vector3 delta = Vector3(float(mouse.x), float(mouse.y), 0.f)
-            * ROTATION_GAIN;
+        Vector3 delta = Vector3(float(mouse.x), float(mouse.y), 0.f) * ROTATION_GAIN * deltaTime;
 
-        camera.pitch -= delta.y;
-        camera.yaw -= delta.x;
+        camera.rotation.x -= delta.y * ROTATION_GAIN * deltaTime;
+        camera.rotation.y -= delta.x * ROTATION_GAIN * deltaTime;
 
         // limit pitch to straight up or straight down
         // with a little fudge-factor to avoid gimbal lock
-        float limit = XM_PI / 2.0f - 0.01f;
-        camera.pitch = (std::max)(-limit, camera.pitch);
-        camera.pitch = (std::min)(+limit, camera.pitch);
+        float limit = 90.0f - 0.01f;
+        camera.rotation.x = (std::max)(-limit, camera.rotation.x);
+        camera.rotation.x = (std::min)(+limit, camera.rotation.x);
 
-        // keep longitude in sane range by wrapping
-        if (camera.yaw > XM_PI)
+        if (camera.rotation.y > 360.f)
         {
-            camera.yaw -= XM_PI * 2.0f;
+            camera.rotation.y -= 360.f;
         }
-        else if (camera.yaw < -XM_PI)
+        else if (camera.rotation.y < -360.f)
         {
-            camera.yaw += XM_PI * 2.0f;
+            camera.rotation.y += 360.f;
         }
+        
     }
 
     Vector3 move = Vector3::Zero;
 
     if (inputCommands.forward)
-        move.z += 1.f;
+        move += camera.forward;
 
     if (inputCommands.back)
-        move.z -= 1.f;
+        move -= camera.forward;
 
     if (inputCommands.left)
-        move.x += 1.f;
+        camera.rotation.y += ROTATION_GAIN * deltaTime;
 
     if (inputCommands.right)
-        move.x -= 1.f;
+        camera.rotation.y -= ROTATION_GAIN * deltaTime;
 
     if (inputCommands.space)
         move.y += 1.f;
@@ -324,11 +324,7 @@ void Game::UpdateCamera()
     if (inputCommands.q_key)
         move.y -= 1.f;
 
-    Quaternion q = Quaternion::CreateFromYawPitchRoll(camera.yaw, camera.pitch, 0.f);
-
-    move = Vector3::Transform(move, q);
-
-    move *= MOVEMENT_GAIN;
+    move *= MOVEMENT_GAIN * deltaTime;
 
     camera.position += move;
 
@@ -337,6 +333,8 @@ void Game::UpdateCamera()
 
     camera.position = Vector3::Min(camera.position, halfBound);
     camera.position = Vector3::Max(camera.position, -halfBound);
+
+    camera.Update();
 }
 
 
@@ -349,8 +347,13 @@ void Game::UpdateGUI()
 	if (show_window)
 	{
 		ImGui::Begin("Window", &show_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-		ImGui::Text("Hello from another window!");
-		if (ImGui::Button("Close Me"))
+        ImGui::Text("Camera Pitch: %f", camera.rotation.x);
+        ImGui::Text("Camera Yaw: %f", camera.rotation.y);
+        ImGui::Text("Camera Forward X: %f", camera.forward.x);
+        ImGui::Text("Camera Forward Y: %f", camera.forward.y);
+        ImGui::Text("Camera Forward Z: %f", camera.forward.z);
+
+        if (ImGui::Button("Close Me"))
 			show_window = false;
 		ImGui::End();
 	}

@@ -18,6 +18,8 @@ struct InputCommands
 	bool left_shift;
 	bool ctrl;
 	bool escape;
+	bool alt;
+	bool tab;
 
 	bool squareButton;
 	bool crossButton;
@@ -46,11 +48,15 @@ class InputSystem
 {
 	public:
 		std::unique_ptr<DirectX::Mouse> mouse;
+		DirectX::Mouse::ButtonStateTracker mouseButtons;
+		DirectX::Keyboard::KeyboardStateTracker keys;
 
 		void Initialize(HWND window);
 
 		void Update();
 		void ControllerUpdate();
+
+		void Reset();
 
 		InputCommands getGameInput();
 	private:

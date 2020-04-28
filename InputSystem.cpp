@@ -24,6 +24,8 @@ void InputSystem::Initialize(HWND window)
 	m_GameInput.left_shift = false;
 	m_GameInput.ctrl = false;
 	m_GameInput.escape = false;
+	m_GameInput.alt = false;
+	m_GameInput.tab = false;
 
 	// Initialize Controller
 	m_GameInput.squareButton = false;
@@ -54,6 +56,7 @@ void InputSystem::Update()
 	ControllerUpdate();
 	
 	auto kb = m_keyboard->GetState();
+	keys.Update(kb);
 	if (kb.W)
 	{
 		m_GameInput.forward = true;
@@ -138,7 +141,7 @@ void InputSystem::Update()
 	else
 		m_GameInput.left_shift = false;
 
-	if (kb.LeftControl)
+	if (keys.pressed.LeftControl)
 	{
 		m_GameInput.ctrl = !m_GameInput.ctrl;
 	}
@@ -149,6 +152,23 @@ void InputSystem::Update()
 	}
 	else
 		m_GameInput.escape = false;
+
+	if (kb.LeftAlt)
+	{
+		m_GameInput.alt = true;
+	}
+	else
+		m_GameInput.alt = false;
+
+	if (kb.Tab)
+	{
+		m_GameInput.tab = true;
+	}
+	else
+		m_GameInput.tab = false;
+
+
+	mouseButtons.Update(mouse->GetState());
 }
 
 void InputSystem::ControllerUpdate()
@@ -247,6 +267,12 @@ void InputSystem::ControllerUpdate()
 		m_GameInput.dPad_X = sf::Joystick::getAxisPosition(0, sf::Joystick::Axis::PovX);
 		m_GameInput.dPad_Y = sf::Joystick::getAxisPosition(0, sf::Joystick::Axis::PovY);
 	}
+}
+
+void InputSystem::Reset()
+{
+	keys.Reset();
+	mouseButtons.Reset();
 }
 
 InputCommands InputSystem::getGameInput()
