@@ -130,7 +130,7 @@ void Game::Render()
 
     // TODO: Add your rendering code here.
     m_world = SimpleMath::Matrix::Identity; //set world back to identity
-    SimpleMath::Matrix newPosition3 = SimpleMath::Matrix::CreateTranslation(0.f, -3.5f, 15.0f);
+    SimpleMath::Matrix newPosition3 = SimpleMath::Matrix::CreateTranslation(0.f, -1.0f, 15.0f);
     SimpleMath::Matrix newRotation = SimpleMath::Matrix::CreateRotationX(XM_PI);		//scale the terrain down a little. 
     m_world = m_world * newRotation * newPosition3;
 
