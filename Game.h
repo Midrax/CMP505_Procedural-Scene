@@ -9,6 +9,9 @@
 #include "InputSystem.h"
 #include "AudioModule.h"
 #include "Camera.h"
+#include "Shader.h"
+#include "Light.h"
+#include "Terrain.h"
 
 // A basic game implementation that creates a D3D11 device and
 // provides a game loop.
@@ -63,19 +66,26 @@ private:
     DX::StepTimer                           m_timer;
     
     // ImGui variables
-    bool show_window =                      true;
+    bool                                    show_window = true;
 
 	// Audio
 	AudioModule								audio;
-
 	// Input System
 	InputSystem								input;
 	InputCommands							inputCommands;
-
     // Camera                               
     Camera                                  camera;
+    // World, View, Projection
+    Matrix                                  m_world;
+    Matrix                                  m_view;
+    Matrix                                  m_projection;
+    // Light
+    Light                                   light;
+    // Shader
+    Shader									basicShaderPair;
 
-    // Room Model
-    std::unique_ptr<DirectX::GeometricPrimitive> m_room;
-    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_roomTex;
+    // Terrain
+    Terrain                                             terrain;
+    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>    m_texture1;
+    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>    m_texture2;
 };

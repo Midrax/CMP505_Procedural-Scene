@@ -14,8 +14,7 @@ using Microsoft::WRL::ComPtr;
 
 namespace
 {
-    const XMVECTORF32 START_POSITION = { 0.f, -1.5f, 0.f, 0.f };
-    const XMVECTORF32 ROOM_BOUNDS = { 8.f, 6.f, 12.f, 0.f };
+    const XMVECTORF32 START_POSITION = { 0.f, 0.0f, 0.f, 0.f };
     const float ROTATION_GAIN = 24.f;
     const float MOVEMENT_GAIN = 1.f;
 }
@@ -63,6 +62,12 @@ void Game::Initialize(HWND window, int width, int height)
 	ImGui_ImplWin32_Init(window);
 	ImGui_ImplDX11_Init(device, context);
 
+    // Initialize light
+    light.setAmbientColour(0.8f, 0.8f, 0.8f, 1.0f);
+    light.setDiffuseColour(1.0f, 1.0f, 1.0f, 1.0f);
+    light.setPosition(2.0f, 1.0f, 1.0f);
+    light.setDirection(-1.0f, -1.0f, 0.0f);
+
 	// Initialize audio
 	audio.Initialize();
 
@@ -98,6 +103,8 @@ void Game::Update(DX::StepTimer const& timer)
 	audio.Update();
 	input.Update();
 
+    terrain.Update();
+
 	if (inputCommands.escape) {
 		ExitGame();
 	}
@@ -122,9 +129,15 @@ void Game::Render()
     auto context = m_deviceResources->GetD3DDeviceContext();
 
     // TODO: Add your rendering code here.
+    m_world = SimpleMath::Matrix::Identity; //set world back to identity
+    SimpleMath::Matrix newPosition3 = SimpleMath::Matrix::CreateTranslation(0.f, -3.5f, 15.0f);
+    SimpleMath::Matrix newRotation = SimpleMath::Matrix::CreateRotationX(XM_PI);		//scale the terrain down a little. 
+    m_world = m_world * newRotation * newPosition3;
 
-    m_room->Draw(Matrix::Identity, camera.view, camera.projection, Colors::White, m_roomTex.Get());
-    
+    //m_room->Draw(Matrix::Identity, camera.view, camera.projection, Colors::White, m_roomTex.Get());
+    basicShaderPair.EnableShader(context);
+    basicShaderPair.SetShaderParameters(context, &m_world, &(Matrix)camera.view, &(Matrix)camera.projection, &light, m_texture1.Get(), m_texture2.Get());
+    terrain.Render(context);
     
     context;
 
@@ -222,14 +235,14 @@ void Game::CreateDeviceDependentResources()
 
     // TODO: Initialize device dependent objects here (independent of window size).
 
-    // Room
-    m_room = GeometricPrimitive::CreateBox(context,
-        XMFLOAT3(ROOM_BOUNDS[0], ROOM_BOUNDS[1], ROOM_BOUNDS[2]),
-        false, true);
+    // Shader
+    basicShaderPair.InitStandard(device, L"light_vs.cso", L"light_ps.cso");
 
-    DX::ThrowIfFailed(
-        CreateDDSTextureFromFile(device, L"Assets/roomtexture.dds",
-            nullptr, m_roomTex.ReleaseAndGetAddressOf()));
+    // Textures
+    CreateDDSTextureFromFile(device, L"Assets/seafloor.dds", nullptr, m_texture1.ReleaseAndGetAddressOf());
+    CreateDDSTextureFromFile(device, L"Assets/grass.dds", nullptr, m_texture2.ReleaseAndGetAddressOf());
+    // Terrain
+    terrain.Initialize(device, 128, 128);
 
     device;
     context;
@@ -254,9 +267,6 @@ void Game::OnDeviceLost()
 	ImGui_ImplWin32_Shutdown();
 	ImGui::DestroyContext();
 
-    // Room
-    m_room.reset();
-    m_roomTex.Reset();
 }
 
 void Game::OnDeviceRestored()
@@ -327,14 +337,9 @@ void Game::UpdateCamera()
     move *= MOVEMENT_GAIN * deltaTime;
 
     camera.position += move;
-
-    Vector3 halfBound = (Vector3(ROOM_BOUNDS.v) / Vector3(2.f))
-        - Vector3(0.1f, 0.1f, 0.1f);
-
-    camera.position = Vector3::Min(camera.position, halfBound);
-    camera.position = Vector3::Max(camera.position, -halfBound);
-
     camera.Update();
+
+    m_view = camera.view;
 }
 
 
@@ -349,9 +354,9 @@ void Game::UpdateGUI()
 		ImGui::Begin("Window", &show_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
         ImGui::Text("Camera Pitch: %f", camera.rotation.x);
         ImGui::Text("Camera Yaw: %f", camera.rotation.y);
-        ImGui::Text("Camera Forward X: %f", camera.forward.x);
-        ImGui::Text("Camera Forward Y: %f", camera.forward.y);
-        ImGui::Text("Camera Forward Z: %f", camera.forward.z);
+        ImGui::Text("Camera Position X: %f", camera.position.x);
+        ImGui::Text("Camera Position Y: %f", camera.position.y);
+        ImGui::Text("Camera Position Z: %f", camera.position.z);
 
         if (ImGui::Button("Close Me"))
 			show_window = false;
