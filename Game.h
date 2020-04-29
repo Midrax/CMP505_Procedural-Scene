@@ -9,9 +9,11 @@
 #include "InputSystem.h"
 #include "AudioModule.h"
 #include "Camera.h"
-#include "Shader.h"
+#include "TerrainShader.h"
+#include "SkydomeShader.h"
 #include "Light.h"
 #include "Terrain.h"
+#include "Skydome.h"
 
 // A basic game implementation that creates a D3D11 device and
 // provides a game loop.
@@ -81,11 +83,14 @@ private:
     Matrix                                  m_projection;
     // Light
     Light                                   light;
-    // Shader
-    Shader									basicShaderPair;
 
     // Terrain
     Terrain                                             terrain;
+    TerrainShader							            terrainShader;
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>    m_texture1;
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>    m_texture2;
+
+    Skydome*                                            skydome;
+    SkydomeShader*                                      skydomeShader;
+
 };

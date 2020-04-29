@@ -76,7 +76,6 @@ bool Terrain::Initialize(ID3D11Device* device, int terrainWidth, int terrainHeig
 		return false;
 	}
 
-
 	return true;
 }
 

@@ -57,6 +57,16 @@ namespace DX
         DXGI_COLOR_SPACE_TYPE   GetColorSpace() const                   { return m_colorSpace; }
         unsigned int            GetDeviceOptions() const                { return m_options; }
 
+        // Extra methods for extra fun
+        void TurnZBufferOn();
+        void TurnZBufferOff();
+        void TurnOnAlphaBlending();
+        void TurnOffAlphaBlending();
+        void TurnOnCulling();
+        void TurnOffCulling();
+        void EnableSecondBlendState();
+        void SetBackBufferRenderTarget();
+
         // Performance events
         void PIXBeginEvent(_In_z_ const wchar_t* name)
         {
@@ -90,6 +100,16 @@ namespace DX
         Microsoft::WRL::ComPtr<ID3D11Texture2D>         m_depthStencil;
         Microsoft::WRL::ComPtr<ID3D11RenderTargetView>  m_d3dRenderTargetView;
         Microsoft::WRL::ComPtr<ID3D11DepthStencilView>  m_d3dDepthStencilView;
+
+        ID3D11DepthStencilState*                        m_depthStencilState;
+        ID3D11RasterizerState*                          m_rasterState;
+        ID3D11DepthStencilState*                        m_depthDisabledStencilState;
+        ID3D11BlendState*                               m_alphaEnableBlendingState;
+        ID3D11BlendState*                               m_alphaDisableBlendingState;
+        ID3D11RasterizerState*                          m_rasterStateNoCulling;
+        //the new blend state pointer.
+        ID3D11BlendState*                               m_alphaBlendState2;
+        
         D3D11_VIEWPORT                                  m_screenViewport;
 
         // Direct3D properties.

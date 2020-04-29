@@ -1,17 +1,17 @@
 #include "pch.h"
-#include "Shader.h"
+#include "TerrainShader.h"
 
 
-Shader::Shader()
+TerrainShader::TerrainShader()
 {
 }
 
 
-Shader::~Shader()
+TerrainShader::~TerrainShader()
 {
 }
 
-bool Shader::InitStandard(ID3D11Device* device, WCHAR* vsFilename, WCHAR* psFilename)
+bool TerrainShader::InitStandard(ID3D11Device* device, WCHAR* vsFilename, WCHAR* psFilename)
 {
 	D3D11_BUFFER_DESC	matrixBufferDesc;
 	D3D11_SAMPLER_DESC	samplerDesc;
@@ -97,7 +97,7 @@ bool Shader::InitStandard(ID3D11Device* device, WCHAR* vsFilename, WCHAR* psFile
 	return true;
 }
 
-bool Shader::SetShaderParameters(ID3D11DeviceContext* context, DirectX::SimpleMath::Matrix* world, DirectX::SimpleMath::Matrix* view, DirectX::SimpleMath::Matrix* projection, Light* sceneLight1, ID3D11ShaderResourceView* texture1, ID3D11ShaderResourceView* texture2)
+bool TerrainShader::SetShaderParameters(ID3D11DeviceContext* context, DirectX::SimpleMath::Matrix* world, DirectX::SimpleMath::Matrix* view, DirectX::SimpleMath::Matrix* projection, Light* sceneLight1, ID3D11ShaderResourceView* texture1, ID3D11ShaderResourceView* texture2)
 {
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 	MatrixBufferType* dataPtr;
@@ -132,7 +132,7 @@ bool Shader::SetShaderParameters(ID3D11DeviceContext* context, DirectX::SimpleMa
 	return false;
 }
 
-void Shader::EnableShader(ID3D11DeviceContext* context)
+void TerrainShader::EnableShader(ID3D11DeviceContext* context)
 {
 	context->IASetInputLayout(m_layout);							//set the input layout for the shader to match out geometry
 	context->VSSetShader(m_vertexShader.Get(), 0, 0);				//turn on vertex shader

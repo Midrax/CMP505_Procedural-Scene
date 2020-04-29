@@ -12,7 +12,6 @@ public:
 	XMMATRIX	view;
 	Vector3		position;
 	Vector3		rotation;
-	Matrix		projection;
 	Vector3		forward;
 	Vector3		right;
 	Vector3		lookAt;

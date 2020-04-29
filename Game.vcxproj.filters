@@ -58,7 +58,11 @@
     <ClInclude Include="Light.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="Shader.h">
+    <ClInclude Include="Skydome.h" />
+    <ClInclude Include="SkydomeShader.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="TerrainShader.h">
       <Filter>Rendering</Filter>
     </ClInclude>
   </ItemGroup>
@@ -96,7 +100,11 @@
     <ClCompile Include="Light.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="Shader.cpp">
+    <ClCompile Include="Skydome.cpp" />
+    <ClCompile Include="SkydomeShader.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="TerrainShader.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
   </ItemGroup>
@@ -108,6 +116,18 @@
       <Filter>Assets</Filter>
     </Image>
     <Image Include="Assets\roomtexture.dds">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\cloud001.dds">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\cloud002.dds">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\grass.dds">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\seafloor.dds">
       <Filter>Assets</Filter>
     </Image>
   </ItemGroup>
@@ -124,6 +144,12 @@
     <None Include="light_vs.cso">
       <Filter>Rendering</Filter>
     </None>
+    <None Include="skydome.ps">
+      <Filter>Rendering</Filter>
+    </None>
+    <None Include="skydome.vs">
+      <Filter>Rendering</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="light_ps.hlsl">
@@ -132,5 +158,10 @@
     <FxCompile Include="light_vs.hlsl">
       <Filter>Rendering</Filter>
     </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Assets\skydome.txt">
+      <Filter>Assets</Filter>
+    </Text>
   </ItemGroup>
 </Project>

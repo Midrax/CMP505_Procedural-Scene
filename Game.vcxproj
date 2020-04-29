@@ -180,7 +180,9 @@
     <ClInclude Include="Light.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="ReadData.h" />
-    <ClInclude Include="Shader.h" />
+    <ClInclude Include="TerrainShader.h" />
+    <ClInclude Include="Skydome.h" />
+    <ClInclude Include="SkydomeShader.h" />
     <ClInclude Include="StepTimer.h" />
     <ClInclude Include="Terrain.h" />
   </ItemGroup>
@@ -204,14 +206,20 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="Shader.cpp" />
+    <ClCompile Include="TerrainShader.cpp" />
+    <ClCompile Include="Skydome.cpp" />
+    <ClCompile Include="SkydomeShader.cpp" />
     <ClCompile Include="Terrain.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="Assets\cloud001.dds" />
+    <Image Include="Assets\cloud002.dds" />
+    <Image Include="Assets\grass.dds" />
     <Image Include="Assets\roomtexture.dds" />
+    <Image Include="Assets\seafloor.dds" />
     <Image Include="directx.ico" />
   </ItemGroup>
   <ItemGroup>
@@ -221,6 +229,8 @@
     <None Include="light_ps.cso" />
     <None Include="light_vs.cso" />
     <None Include="packages.config" />
+    <None Include="skydome.ps" />
+    <None Include="skydome.vs" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="light_ps.hlsl">
@@ -231,6 +241,9 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
     </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Assets\skydome.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

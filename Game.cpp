@@ -14,7 +14,7 @@ using Microsoft::WRL::ComPtr;
 
 namespace
 {
-    const XMVECTORF32 START_POSITION = { 0.f, 0.0f, 0.f, 0.f };
+    const XMVECTORF32 START_POSITION = { 0.f, 0.0f, -1.f, 0.f };
     const float ROTATION_GAIN = 24.f;
     const float MOVEMENT_GAIN = 1.f;
 }
@@ -65,8 +65,14 @@ void Game::Initialize(HWND window, int width, int height)
     // Initialize light
     light.setAmbientColour(0.8f, 0.8f, 0.8f, 1.0f);
     light.setDiffuseColour(1.0f, 1.0f, 1.0f, 1.0f);
-    light.setPosition(2.0f, 1.0f, 1.0f);
-    light.setDirection(-1.0f, -1.0f, 0.0f);
+    light.setPosition(0.0f, 5.0f, 1.0f);
+    light.setDirection(0.0f, -1.0f, -1.0f);
+
+    // Initialize Skydome
+    skydome = new Skydome;
+    skydome->Initialize(device);
+    skydomeShader = new SkydomeShader;
+    skydomeShader->Initialize(device, window);
 
 	// Initialize audio
 	audio.Initialize();
@@ -126,19 +132,29 @@ void Game::Render()
     Clear();
 
     m_deviceResources->PIXBeginEvent(L"Render");
+    auto device = m_deviceResources->GetD3DDevice();
     auto context = m_deviceResources->GetD3DDeviceContext();
 
     // TODO: Add your rendering code here.
-    m_world = SimpleMath::Matrix::Identity; //set world back to identity
-    SimpleMath::Matrix newPosition3 = SimpleMath::Matrix::CreateTranslation(0.f, -1.0f, 15.0f);
-    SimpleMath::Matrix newRotation = SimpleMath::Matrix::CreateRotationX(XM_PI);		//scale the terrain down a little. 
-    m_world = m_world * newRotation * newPosition3;
 
-    //m_room->Draw(Matrix::Identity, camera.view, camera.projection, Colors::White, m_roomTex.Get());
-    basicShaderPair.EnableShader(context);
-    basicShaderPair.SetShaderParameters(context, &m_world, &(Matrix)camera.view, &(Matrix)camera.projection, &light, m_texture1.Get(), m_texture2.Get());
+    // Render Skybox
+    m_deviceResources->TurnOffCulling();
+    m_deviceResources->TurnZBufferOff();
+    m_world = SimpleMath::Matrix::Identity * Matrix::CreateScale(5.f) * SimpleMath::Matrix::CreateTranslation(camera.position);
+    skydome->Render(context);
+    skydomeShader->Render(context, skydome->GetIndexCount(), m_world, m_view, m_projection, skydome->GetApexColor(), skydome->GetCenterColor());
+    m_deviceResources->TurnOnCulling();
+    m_deviceResources->TurnZBufferOn();
+
+    // Render Terrain
+    m_world = SimpleMath::Matrix::Identity; //set world back to identity
+    SimpleMath::Matrix newPosition3 = SimpleMath::Matrix::CreateTranslation(-15.f, -1.0f, 15.0f);
+    SimpleMath::Matrix newRotation = SimpleMath::Matrix::CreateRotationX(XM_PI);
+    m_world = m_world * newRotation * newPosition3;
+    terrainShader.EnableShader(context);
+    terrainShader.SetShaderParameters(context, &m_world, &(Matrix)m_view, &(Matrix)m_projection, &light, m_texture1.Get(), m_texture2.Get());
     terrain.Render(context);
-    
+
     context;
 
     m_deviceResources->PIXEndEvent();
@@ -236,8 +252,7 @@ void Game::CreateDeviceDependentResources()
     // TODO: Initialize device dependent objects here (independent of window size).
 
     // Shader
-    basicShaderPair.InitStandard(device, L"light_vs.cso", L"light_ps.cso");
-
+    terrainShader.InitStandard(device, L"light_vs.cso", L"light_ps.cso");
     // Textures
     CreateDDSTextureFromFile(device, L"Assets/seafloor.dds", nullptr, m_texture1.ReleaseAndGetAddressOf());
     CreateDDSTextureFromFile(device, L"Assets/grass.dds", nullptr, m_texture2.ReleaseAndGetAddressOf());
@@ -256,8 +271,8 @@ void Game::CreateWindowSizeDependentResources()
     float backBufferWidth = size.right;
     float backBufferHeight = size.bottom;
 
-    camera.projection = Matrix::CreatePerspectiveFieldOfView(XMConvertToRadians(70.f),
-        backBufferWidth / backBufferHeight, 0.01f, 100.f);
+    m_projection = Matrix::CreatePerspectiveFieldOfView(XMConvertToRadians(90.f),
+        backBufferWidth / backBufferHeight, 0.01f, 1000.f);
 }
 
 void Game::OnDeviceLost()
@@ -267,6 +282,21 @@ void Game::OnDeviceLost()
 	ImGui_ImplWin32_Shutdown();
 	ImGui::DestroyContext();
 
+    // Release the sky dome shader object.
+    if (skydomeShader)
+    {
+        skydomeShader->Shutdown();
+        delete skydomeShader;
+        skydomeShader = 0;
+    }
+
+    // Release the sky dome object.
+    if (skydome)
+    {
+        skydome->Shutdown();
+        delete skydome;
+        skydome = 0;
+    }
 }
 
 void Game::OnDeviceRestored()

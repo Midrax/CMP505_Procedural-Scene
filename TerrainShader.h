@@ -5,11 +5,11 @@
 
 //Class from which we create all shader objects used by the framework
 //This single class can be expanded to accomodate shaders of all different types with different parameters
-class Shader
+class TerrainShader
 {
 public:
-	Shader();
-	~Shader();
+	TerrainShader();
+	~TerrainShader();
 
 	//we could extend this to load in only a vertex shader, only a pixel shader etc.  or specialised init for Geometry or domain shader. 
 	//All the methods here simply create new versions corresponding to your needs

@@ -22,6 +22,5 @@ void Camera::Update()
 
     forward.Cross(Vector3::UnitY, right);
     XMVECTOR lookAt = position + forward;
-
-    view = Matrix::CreateLookAt(position, lookAt, Vector3::UnitY);
+    view = (Matrix)DirectX::XMMatrixLookAtRH(position, lookAt, Vector3::UnitY);
 }

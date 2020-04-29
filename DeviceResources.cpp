@@ -239,6 +239,123 @@ void DeviceResources::CreateDeviceResources()
     ThrowIfFailed(device.As(&m_d3dDevice));
     ThrowIfFailed(context.As(&m_d3dContext));
     ThrowIfFailed(context.As(&m_d3dAnnotation));
+
+    // Extra
+    D3D11_TEXTURE2D_DESC depthBufferDesc;
+    D3D11_DEPTH_STENCIL_DESC depthStencilDesc;
+    D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc;
+    D3D11_RASTERIZER_DESC rasterDesc;
+
+    float fieldOfView, screenAspect;
+    D3D11_DEPTH_STENCIL_DESC depthDisabledStencilDesc;
+    D3D11_BLEND_DESC blendStateDescription;
+
+    m_depthStencilState = 0;
+    m_rasterState = 0;
+    m_depthDisabledStencilState = 0;
+    m_alphaEnableBlendingState = 0;
+    m_alphaEnableBlendingState = 0;
+    m_alphaDisableBlendingState = 0;
+    // Skydome
+    m_rasterStateNoCulling = 0;
+    // Cloud
+    m_alphaBlendState2 = 0;
+    m_depthDisabledStencilState = 0;
+
+    ZeroMemory(&depthBufferDesc, sizeof(depthBufferDesc));
+
+    // Set up the description of the depth buffer.
+    depthBufferDesc.Width = GetOutputSize().right;
+    depthBufferDesc.Height = GetOutputSize().bottom;
+    depthBufferDesc.MipLevels = 1;
+    depthBufferDesc.ArraySize = 1;
+    depthBufferDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+    depthBufferDesc.SampleDesc.Count = 1;
+    depthBufferDesc.SampleDesc.Quality = 0;
+    depthBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+    depthBufferDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+    depthBufferDesc.CPUAccessFlags = 0;
+    depthBufferDesc.MiscFlags = 0;
+
+    // Create the texture for the depth buffer using the filled out description.
+    m_d3dDevice->CreateTexture2D(&depthBufferDesc, NULL, &m_depthStencil);
+
+    // Initialize the description of the stencil state.
+    ZeroMemory(&depthStencilDesc, sizeof(depthStencilDesc));
+
+    // Set up the description of the stencil state.
+    depthStencilDesc.DepthEnable = true;
+    depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+    depthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS;
+
+    depthStencilDesc.StencilEnable = true;
+    depthStencilDesc.StencilReadMask = 0xFF;
+    depthStencilDesc.StencilWriteMask = 0xFF;
+
+    // Stencil operations if pixel is front-facing.
+    depthStencilDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+    depthStencilDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_INCR;
+    depthStencilDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+    depthStencilDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+
+    // Stencil operations if pixel is back-facing.
+    depthStencilDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+    depthStencilDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_DECR;
+    depthStencilDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+    depthStencilDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+
+    // Create the depth stencil state.
+    m_d3dDevice->CreateDepthStencilState(&depthStencilDesc, &m_depthStencilState);
+    // Set the depth stencil state.
+    m_d3dContext->OMSetDepthStencilState(m_depthStencilState, 1);
+
+    // Initialize the depth stencil view.
+    ZeroMemory(&depthStencilViewDesc, sizeof(depthStencilViewDesc));
+
+    // Set up the depth stencil view description.
+    depthStencilViewDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+    depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+    depthStencilViewDesc.Texture2D.MipSlice = 0;
+
+    // Create the depth stencil view.
+    m_d3dDevice->CreateDepthStencilView(m_depthStencil.Get(), &depthStencilViewDesc, &m_d3dDepthStencilView);
+
+    // Bind the render target view and depth stencil buffer to the output render pipeline.
+    m_d3dContext->OMSetRenderTargets(1, &m_d3dRenderTargetView, m_d3dDepthStencilView.Get());
+
+    // Setup the raster description which will determine how and what polygons will be drawn.
+    rasterDesc.AntialiasedLineEnable = false;
+    rasterDesc.CullMode = D3D11_CULL_BACK;
+    rasterDesc.DepthBias = 0;
+    rasterDesc.DepthBiasClamp = 0.0f;
+    rasterDesc.DepthClipEnable = true;
+    rasterDesc.FillMode = D3D11_FILL_SOLID;
+    rasterDesc.FrontCounterClockwise = false;
+    rasterDesc.MultisampleEnable = false;
+    rasterDesc.ScissorEnable = false;
+    rasterDesc.SlopeScaledDepthBias = 0.0f;
+
+    // Create the rasterizer state from the description we just filled out.
+    m_d3dDevice->CreateRasterizerState(&rasterDesc, &m_rasterState);
+
+    // Now set the rasterizer state.
+    m_d3dContext->RSSetState(m_rasterState);
+
+    // Setup a raster description which turns off back face culling.
+    rasterDesc.AntialiasedLineEnable = false;
+    rasterDesc.CullMode = D3D11_CULL_NONE;
+    rasterDesc.DepthBias = 0;
+    rasterDesc.DepthBiasClamp = 0.0f;
+    rasterDesc.DepthClipEnable = true;
+    rasterDesc.FillMode = D3D11_FILL_SOLID;
+    rasterDesc.FrontCounterClockwise = false;
+    rasterDesc.MultisampleEnable = false;
+    rasterDesc.ScissorEnable = false;
+    rasterDesc.SlopeScaledDepthBias = 0.0f;
+
+    // Create the no culling rasterizer state.
+    m_d3dDevice->CreateRasterizerState(&rasterDesc, &m_rasterStateNoCulling);
+
 }
 
 // These resources need to be recreated every time the window size is changed.
@@ -653,4 +770,99 @@ void DeviceResources::UpdateColorSpace()
             ThrowIfFailed(swapChain3->SetColorSpace1(colorSpace));
         }
     }
+
+}
+
+void DeviceResources::TurnZBufferOn()
+{
+    GetD3DDeviceContext()->OMSetDepthStencilState(m_depthStencilState, 1);
+    return;
+}
+
+
+void DeviceResources::TurnZBufferOff()
+{
+    GetD3DDeviceContext()->OMSetDepthStencilState(m_depthDisabledStencilState, 1);
+    return;
+}
+
+
+void DeviceResources::TurnOnAlphaBlending()
+{
+    float blendFactor[4];
+
+
+    // Setup the blend factor.
+    blendFactor[0] = 0.0f;
+    blendFactor[1] = 0.0f;
+    blendFactor[2] = 0.0f;
+    blendFactor[3] = 0.0f;
+
+    // Turn on the alpha blending.
+    m_d3dContext->OMSetBlendState(m_alphaEnableBlendingState, blendFactor, 0xffffffff);
+
+    return;
+}
+
+
+void DeviceResources::TurnOffAlphaBlending()
+{
+    float blendFactor[4];
+
+
+    // Setup the blend factor.
+    blendFactor[0] = 0.0f;
+    blendFactor[1] = 0.0f;
+    blendFactor[2] = 0.0f;
+    blendFactor[3] = 0.0f;
+
+    // Turn off the alpha blending.
+    m_d3dContext->OMSetBlendState(m_alphaDisableBlendingState, blendFactor, 0xffffffff);
+
+    return;
+}
+
+void DeviceResources::TurnOnCulling()
+{
+    // Set the culling rasterizer state.
+    m_d3dContext->RSSetState(m_rasterState);
+
+    return;
+}
+
+
+void DeviceResources::TurnOffCulling()
+{
+    // Set the no back face culling rasterizer state.
+    m_d3dContext->RSSetState(m_rasterStateNoCulling);
+
+    return;
+}
+
+// new function for enabling the additive blend state.
+
+void DeviceResources::EnableSecondBlendState()
+{
+    float blendFactor[4];
+
+
+    // Setup the blend factor.
+    blendFactor[0] = 0.0f;
+    blendFactor[1] = 0.0f;
+    blendFactor[2] = 0.0f;
+    blendFactor[3] = 0.0f;
+
+    // Turn on the alpha blending.
+    m_d3dContext->OMSetBlendState(m_alphaBlendState2, blendFactor, 0xffffffff);
+
+    return;
+}
+
+
+void DeviceResources::SetBackBufferRenderTarget()
+{
+    // Bind the render target view and depth stencil buffer to the output render pipeline.
+    m_d3dContext->OMSetRenderTargets(1, &m_d3dRenderTargetView, m_d3dDepthStencilView.Get());
+
+    return;
 }
