@@ -138,16 +138,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="light_ps.cso">
+    <None Include="skydome_ps.hlsl">
       <Filter>Rendering</Filter>
     </None>
-    <None Include="light_vs.cso">
-      <Filter>Rendering</Filter>
-    </None>
-    <None Include="skydome.ps">
-      <Filter>Rendering</Filter>
-    </None>
-    <None Include="skydome.vs">
+    <None Include="skydome_vs.hlsl">
       <Filter>Rendering</Filter>
     </None>
   </ItemGroup>

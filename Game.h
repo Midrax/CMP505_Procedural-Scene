@@ -87,8 +87,8 @@ private:
     // Terrain
     Terrain                                             terrain;
     TerrainShader							            terrainShader;
-    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>    m_texture1;
-    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>    m_texture2;
+    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>    m_mountain_texture;
+    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>    m_grass_texture;
 
     Skydome*                                            skydome;
     SkydomeShader*                                      skydomeShader;

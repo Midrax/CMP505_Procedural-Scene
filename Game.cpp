@@ -63,10 +63,10 @@ void Game::Initialize(HWND window, int width, int height)
 	ImGui_ImplDX11_Init(device, context);
 
     // Initialize light
-    light.setAmbientColour(0.8f, 0.8f, 0.8f, 1.0f);
+    light.setAmbientColour(0.5f, 0.5f, 0.5f, 1.0f);
     light.setDiffuseColour(1.0f, 1.0f, 1.0f, 1.0f);
-    light.setPosition(0.0f, 5.0f, 1.0f);
-    light.setDirection(0.0f, -1.0f, -1.0f);
+    light.setPosition(0.0f, -10.0f, 1.0f);
+    light.setDirection(-1.0f, -1.0f, 1.0f);
 
     // Initialize Skydome
     skydome = new Skydome;
@@ -148,11 +148,11 @@ void Game::Render()
 
     // Render Terrain
     m_world = SimpleMath::Matrix::Identity; //set world back to identity
-    SimpleMath::Matrix newPosition3 = SimpleMath::Matrix::CreateTranslation(-15.f, -1.0f, 15.0f);
+    SimpleMath::Matrix newPosition3 = Matrix::CreateScale(0.2f) * SimpleMath::Matrix::CreateTranslation(-5.5f, -1.0f, 10.f);
     SimpleMath::Matrix newRotation = SimpleMath::Matrix::CreateRotationX(XM_PI);
     m_world = m_world * newRotation * newPosition3;
     terrainShader.EnableShader(context);
-    terrainShader.SetShaderParameters(context, &m_world, &(Matrix)m_view, &(Matrix)m_projection, &light, m_texture1.Get(), m_texture2.Get());
+    terrainShader.SetShaderParameters(context, &m_world, &(Matrix)m_view, &(Matrix)m_projection, &light, m_mountain_texture.Get(), m_grass_texture.Get());
     terrain.Render(context);
 
     context;
@@ -254,11 +254,11 @@ void Game::CreateDeviceDependentResources()
     // Shader
     terrainShader.InitStandard(device, L"light_vs.cso", L"light_ps.cso");
     // Textures
-    CreateDDSTextureFromFile(device, L"Assets/seafloor.dds", nullptr, m_texture1.ReleaseAndGetAddressOf());
-    CreateDDSTextureFromFile(device, L"Assets/grass.dds", nullptr, m_texture2.ReleaseAndGetAddressOf());
+    CreateDDSTextureFromFile(device, L"Assets/mountain.dds", nullptr, m_mountain_texture.ReleaseAndGetAddressOf());
+    CreateDDSTextureFromFile(device, L"Assets/grass.dds", nullptr, m_grass_texture.ReleaseAndGetAddressOf());
     // Terrain
     terrain.Initialize(device, 128, 128);
-
+    terrain.GenerateHeightMap(device);
     device;
     context;
 }

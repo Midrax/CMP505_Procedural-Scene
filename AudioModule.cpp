@@ -18,6 +18,8 @@ void AudioModule::Initialize()
 #endif
 	m_audEngine = std::make_unique<AudioEngine>(eflags);
 	m_retryAudio = false;
+
+	//m_ambient = std::make_unique<SoundEffect>(m_audEngine.get(),L"NightAmbienceSimple_02.wav");
 }
 
 void AudioModule::OnSuspending()

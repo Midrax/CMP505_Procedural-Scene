@@ -13,5 +13,6 @@ class AudioModule
 	private:
 		bool m_retryAudio;
 		std::unique_ptr<DirectX::AudioEngine> m_audEngine;
+		std::unique_ptr<DirectX::SoundEffect> m_ambient;
 };
 

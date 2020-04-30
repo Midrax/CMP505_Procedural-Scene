@@ -24,8 +24,8 @@ bool Terrain::Initialize(ID3D11Device* device, int terrainWidth, int terrainHeig
 	m_terrainHeight = terrainHeight;
 
 	m_frequency = m_terrainWidth / 20;
-	m_amplitude = 3.0;
-	m_wavelength = 1;
+	m_amplitude = 10.0f;
+	m_wavelength = 0.1f;
 
 	// Create the structure to hold the terrain data.
 	m_heightMap = new HeightMapType[m_terrainWidth * m_terrainHeight];
@@ -554,23 +554,9 @@ bool Terrain::GenerateHeightMap(ID3D11Device* device)
 	float height = 0.0;
 
 	m_frequency = (6.283 / m_terrainHeight) / m_wavelength; //we want a wavelength of 1 to be a single wave over the whole terrain.  A single wave is 2 pi which is about 6.283
-
-	//loop through the terrain and set the hieghts how we want. This is where we generate the terrain
-	//in this case I will run a sin-wave through the terrain in one axis.
-
-	/*for (int j = 0; j<m_terrainHeight; j++)
-	{
-		for (int i = 0; i<m_terrainWidth; i++)
-		{
-			index = (m_terrainHeight * j) + i;
-
-			m_heightMap[index].x = (float)i;
-			m_heightMap[index].y = (float)(sin((float)i *(m_frequency))*m_amplitude) + (float)(sin((float)j * (m_frequency)) * m_amplitude);
-			m_heightMap[index].z = (float)j;
-		}
-	}*/
-	//randomHeightMap();
 	noiseHeightMap();
+	//randomHeightMap();
+	SmoothenHeightMap(device);
 	result = CalculateNormals();
 	if (!result)
 	{
@@ -669,7 +655,7 @@ void Terrain::randomHeightMap()
 			m_heightMap[index].x = (float)i;
 			float r = (((double)rand() / (RAND_MAX)) + 1);
 			//float r2 = (((double)rand() / (RAND_MAX)) + 1);
-			m_heightMap[index].y = r * m_amplitude;
+			m_heightMap[index].y += r * m_amplitude;
 			m_heightMap[index].z = (float)j;
 		}
 	}
@@ -823,7 +809,7 @@ bool Terrain::SmoothenHeightMap(ID3D11Device* device)
 
 			// Normalize the final shared normal for this vertex and store it in the height map array.
 			m_heightMap[index].x = (float)i;
-			m_heightMap[index].y = (float)(m_heightMap[index].y + sum_y) / 2;
+			m_heightMap[index].y = (float)(m_heightMap[index].y + sum_y) / 4;
 			m_heightMap[index].z = (float)j;
 		}
 	}
