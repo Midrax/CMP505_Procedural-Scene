@@ -554,11 +554,13 @@ bool Terrain::GenerateHeightMap(ID3D11Device* device)
 	float height = 0.0;
 
 	m_frequency = (6.283 / m_terrainHeight) / m_wavelength; //we want a wavelength of 1 to be a single wave over the whole terrain.  A single wave is 2 pi which is about 6.283
-	noiseHeightMap();
-	//randomHeightMap();
 	for (int i = 0; i < 30; i++)
+	{
 		Faulting();
-
+	}
+	RandomHeightMap();
+	SmoothenHeightMap(device);
+	NoiseHeightMap();
 	SmoothenHeightMap(device);
 	result = CalculateNormals();
 	if (!result)
@@ -629,7 +631,7 @@ double Terrain::simplexNoise(double xin, double yin) {
 	return 70.0 * (n0 + n1 + n2);
 }
 
-void Terrain::noiseHeightMap()
+void Terrain::NoiseHeightMap()
 {
 	int index;
 	for (int j = 0; j < m_terrainHeight; j++)
@@ -639,14 +641,15 @@ void Terrain::noiseHeightMap()
 			index = (m_terrainHeight * j) + i;
 
 			m_heightMap[index].x = (float)i;
-			m_heightMap[index].y = (float)simplexNoise((double)i * m_wavelength, (double)j * m_wavelength) * m_amplitude;
+			m_heightMap[index].y += (float)simplexNoise((double)i * m_wavelength, (double)j * m_wavelength) * m_amplitude;
 			m_heightMap[index].z = (float)j;
 		}
 	}
 }
 
-void Terrain::randomHeightMap()
+void Terrain::RandomHeightMap()
 {
+
 	//srand(time(NULL));
 	int index;
 	for (int j = 0; j < m_terrainHeight; j++)
@@ -655,11 +658,7 @@ void Terrain::randomHeightMap()
 		{
 			index = (m_terrainHeight * j) + i;
 
-			m_heightMap[index].x = (float)i;
-			float r = (((double)rand() / (RAND_MAX)) + 1);
-			//float r2 = (((double)rand() / (RAND_MAX)) + 1);
-			m_heightMap[index].y += r * m_amplitude;
-			m_heightMap[index].z = (float)j;
+			m_heightMap[index].y += (((float)rand()) / (float)RAND_MAX * 8.0f) - 4.f;
 		}
 	}
 }

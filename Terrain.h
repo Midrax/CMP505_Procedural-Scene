@@ -37,10 +37,10 @@ private:
 	bool CalculateNormals();
 	bool InitializeBuffers(ID3D11Device*);
 	void RenderBuffers(ID3D11DeviceContext*);
-	void randomHeightMap();
+	void RandomHeightMap();
 	void Faulting();
 	void CalculateTextureCoordinates();
-	void noiseHeightMap();
+	void NoiseHeightMap();
 
 	double simplexNoise(double x, double y);
 	int fastfloor(double x);
