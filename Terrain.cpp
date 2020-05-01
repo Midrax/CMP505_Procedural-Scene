@@ -556,13 +556,16 @@ bool Terrain::GenerateHeightMap(ID3D11Device* device)
 	m_frequency = (6.283 / m_terrainHeight) / m_wavelength; //we want a wavelength of 1 to be a single wave over the whole terrain.  A single wave is 2 pi which is about 6.283
 	noiseHeightMap();
 	//randomHeightMap();
+	for (int i = 0; i < 30; i++)
+		Faulting();
+
 	SmoothenHeightMap(device);
 	result = CalculateNormals();
 	if (!result)
 	{
 		return false;
 	}
-	//CalculateTextureCoordinates();
+	CalculateTextureCoordinates();
 
 	result = InitializeBuffers(device);
 	if (!result)
@@ -661,6 +664,53 @@ void Terrain::randomHeightMap()
 	}
 }
 
+void Terrain::Faulting()
+{
+	int x1, y1, x2, y2;
+	float m, b;
+	x1 = (int)m_terrainWidth * 0.1f + (int)(rand() % (int)(m_terrainWidth * 0.8f));
+	y1 = (rand() % 2 == 0) ? m_terrainHeight - 1 : 0;
+	int random1 = 0;
+	while (random1 == 0 || x2 == x1) {
+
+		random1 = (((float)rand()) / (float)RAND_MAX * 10.0f) - 5.f;
+		x2 = x1 + random1;		//random between -15 and 15
+	}
+	int random2 = 0;
+	while (random2 == 0)
+	{
+		random2 = (((float)rand()) / (float)RAND_MAX * 10.0f) - 5.f;
+	}
+	y2 = y1 + random2;		//random between -15 and 15
+
+	m = ((float)(y2 - y1)) / ((float)(x2 - x1));
+	b = (float)y1 - (((float)x1) * m);
+
+	float random = ((float)rand()) / (float)RAND_MAX;
+	float diff = 10.0f;
+	float r = random * diff;
+	random1 = (int)(-5.0f + r);
+	float H1 = (((float)rand()) / (float)RAND_MAX * 10.0f) - 5.f;
+	float H2 = H1 * 0.5f;
+	int index;
+	bool eq;
+	int i, j;
+	//Faulting
+	for (j = 0; j < m_terrainHeight; j++)
+	{
+		for (i = 0; i < m_terrainWidth; i++)
+		{
+			index = (m_terrainWidth * j) + i;
+
+			eq = (float)j > ((float)i * m) + b;
+			if (eq)
+				m_heightMap[index].y += H1;
+
+			m_heightMap[index].y -= H1;
+		}
+	}
+}
+
 void Terrain::CalculateTextureCoordinates()
 {
 	int incrementCount, i, j, tuCount, tvCount;
@@ -690,8 +740,8 @@ void Terrain::CalculateTextureCoordinates()
 			index = (m_terrainHeight * j) + i;
 
 			// Store the texture coordinate in the height map.
-			m_heightMap[(m_terrainHeight * j) + i].y = tuCoordinate;
-			m_heightMap[(m_terrainHeight * j) + i].z = tvCoordinate;
+			m_heightMap[(m_terrainHeight * j) + i].tu = tuCoordinate;
+			m_heightMap[(m_terrainHeight * j) + i].tv = tvCoordinate;
 
 			tuCoordinate += incrementValue;
 			tuCount++;

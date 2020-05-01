@@ -46,7 +46,7 @@ float4 main(InputType input) : SV_TARGET
 	textureColor2 = shaderTexture2.Sample(SampleType, input.tex);
 
 	float variance = 0;
-	float yValue = input.position3D.y+0.8;
+	float yValue = input.position3D.y+2;
 	if (yValue > 0.2) {
 		variance = 1;
 	}

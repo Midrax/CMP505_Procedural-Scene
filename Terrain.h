@@ -16,6 +16,7 @@ private:
 	{
 		float x, y, z;
 		float nx, ny, nz;
+		float tu, tv;
 	};
 public:
 	Terrain();
@@ -29,14 +30,15 @@ public:
 	float* GetWavelength();
 
 	float* GetAmplitude();
+	void Shutdown();
+	void ShutdownBuffers();
 
 private:
 	bool CalculateNormals();
-	void Shutdown();
-	void ShutdownBuffers();
 	bool InitializeBuffers(ID3D11Device*);
 	void RenderBuffers(ID3D11DeviceContext*);
 	void randomHeightMap();
+	void Faulting();
 	void CalculateTextureCoordinates();
 	void noiseHeightMap();
 

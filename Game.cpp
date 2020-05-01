@@ -66,7 +66,7 @@ void Game::Initialize(HWND window, int width, int height)
     light.setAmbientColour(0.5f, 0.5f, 0.5f, 1.0f);
     light.setDiffuseColour(1.0f, 1.0f, 1.0f, 1.0f);
     light.setPosition(0.0f, -10.0f, 1.0f);
-    light.setDirection(-1.0f, -1.0f, 1.0f);
+    light.setDirection(-1.0f, 1.0f, 1.0f);
 
     // Initialize Skydome
     skydome = new Skydome;
@@ -140,7 +140,7 @@ void Game::Render()
     // Render Skybox
     m_deviceResources->TurnOffCulling();
     m_deviceResources->TurnZBufferOff();
-    m_world = SimpleMath::Matrix::Identity * Matrix::CreateScale(5.f) * SimpleMath::Matrix::CreateTranslation(camera.position);
+    m_world = SimpleMath::Matrix::Identity * Matrix::CreateScale(10.f) * SimpleMath::Matrix::CreateTranslation(camera.position);
     skydome->Render(context);
     skydomeShader->Render(context, skydome->GetIndexCount(), m_world, m_view, m_projection, skydome->GetApexColor(), skydome->GetCenterColor());
     m_deviceResources->TurnOnCulling();
@@ -148,7 +148,7 @@ void Game::Render()
 
     // Render Terrain
     m_world = SimpleMath::Matrix::Identity; //set world back to identity
-    SimpleMath::Matrix newPosition3 = Matrix::CreateScale(0.2f) * SimpleMath::Matrix::CreateTranslation(-5.5f, -1.0f, 10.f);
+    SimpleMath::Matrix newPosition3 = Matrix::CreateScale(0.2f) * SimpleMath::Matrix::CreateTranslation(-10.5f, -2.0f, 10.f);
     SimpleMath::Matrix newRotation = SimpleMath::Matrix::CreateRotationX(XM_PI);
     m_world = m_world * newRotation * newPosition3;
     terrainShader.EnableShader(context);
@@ -297,6 +297,8 @@ void Game::OnDeviceLost()
         delete skydome;
         skydome = 0;
     }
+
+    terrain.Shutdown();
 }
 
 void Game::OnDeviceRestored()
