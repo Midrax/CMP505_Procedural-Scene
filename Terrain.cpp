@@ -6,6 +6,9 @@ Terrain::Terrain()
 {
 	m_terrainGeneratedToggle = false;
 	for (int i = 0; i < 512; i++) perm[i] = p[i & 255];
+
+	m_VPoints = 0;
+	m_VRegions = 0;
 }
 
 
@@ -26,6 +29,7 @@ bool Terrain::Initialize(ID3D11Device* device, int terrainWidth, int terrainHeig
 	m_frequency = m_terrainWidth / 20;
 	m_amplitude = 10.0f;
 	m_wavelength = 0.1f;
+	m_dungeonDepth = 5;
 
 	// Create the structure to hold the terrain data.
 	m_heightMap = new HeightMapType[m_terrainWidth * m_terrainHeight];
@@ -554,13 +558,13 @@ bool Terrain::GenerateHeightMap(ID3D11Device* device)
 	float height = 0.0;
 
 	m_frequency = (6.283 / m_terrainHeight) / m_wavelength; //we want a wavelength of 1 to be a single wave over the whole terrain.  A single wave is 2 pi which is about 6.283
-	for (int i = 0; i < 30; i++)
-	{
-		Faulting();
-	}
+	for (int i = 0; i < 30; i++) Faulting();
 	RandomHeightMap();
-	SmoothenHeightMap(device);
+	SmoothenHeightMap(device, 2);
 	NoiseHeightMap();
+	SmoothenHeightMap(device,4);
+	VoronoiDungeon();
+	SmoothenHeightMap(device);
 	SmoothenHeightMap(device);
 	result = CalculateNormals();
 	if (!result)
@@ -576,59 +580,20 @@ bool Terrain::GenerateHeightMap(ID3D11Device* device)
 	}
 }
 
-double Terrain::simplexNoise(double xin, double yin) {
-	double n0, n1, n2; // Noise contributions from the three corners
-	// Skew the input space to determine which simplex cell we're in
-	double F2 = 0.5 * (sqrt(3.0) - 1.0);
-	double s = (xin + yin) * F2; // Hairy factor for 2D
-	int i = fastfloor(xin + s);
-	int j = fastfloor(yin + s);
-	double G2 = (3.0 - sqrt(3.0)) / 6.0;
-	double t = (i + j) * G2;
-	double X0 = i - t; // Unskew the cell origin back to (x,y) space
-	double Y0 = j - t;
-	double x0 = xin - X0; // The x,y distances from the cell origin
-	double y0 = yin - Y0;
-	// For the 2D case, the simplex shape is an equilateral triangle.
-	// Determine which simplex we are in.
-	int i1, j1; // Offsets for second (middle) corner of simplex in (i,j) coords
-	if (x0 > y0) { i1 = 1; j1 = 0; } // lower triangle, XY order: (0,0)->(1,0)->(1,1)
-	else { i1 = 0; j1 = 1; } // upper triangle, YX order: (0,0)->(0,1)->(1,1)
-	// A step of (1,0) in (i,j) means a step of (1-c,-c) in (x,y), and
-	// a step of (0,1) in (i,j) means a step of (-c,1-c) in (x,y), where
-	// c = (3-sqrt(3))/6
-	double x1 = x0 - i1 + G2; // Offsets for middle corner in (x,y) unskewed coords
-	double y1 = y0 - j1 + G2;
-	double x2 = x0 - 1.0 + 2.0 * G2; // Offsets for last corner in (x,y) unskewed coords
-	double y2 = y0 - 1.0 + 2.0 * G2;
-	// Work out the hashed gradient indices of the three simplex corners
-	int ii = i & 255;
-	int jj = j & 255;
-	int gi0 = perm[ii + perm[jj]] % 12;
-	int gi1 = perm[ii + i1 + perm[jj + j1]] % 12;
-	int gi2 = perm[ii + 1 + perm[jj + 1]] % 12;
-	// Calculate the contribution from the three corners
-	double t0 = 0.5 - x0 * x0 - y0 * y0;
-	if (t0 < 0) n0 = 0.0;
-	else {
-		t0 *= t0;
-		n0 = t0 * t0 * dot(grad3[gi0], x0, y0); // (x,y) of grad3 used for 2D gradient
+void Terrain::RandomHeightMap()
+{
+
+	//srand(time(NULL));
+	int index;
+	for (int j = 0; j < m_terrainHeight; j++)
+	{
+		for (int i = 0; i < m_terrainWidth; i++)
+		{
+			index = (m_terrainHeight * j) + i;
+
+			m_heightMap[index].y += randomFloat(-0.4f, 0.4f);
+		}
 	}
-	double t1 = 0.5 - x1 * x1 - y1 * y1;
-	if (t1 < 0) n1 = 0.0;
-	else {
-		t1 *= t1;
-		n1 = t1 * t1 * dot(grad3[gi1], x1, y1);
-	}
-	double t2 = 0.5 - x2 * x2 - y2 * y2;
-	if (t2 < 0) n2 = 0.0;
-	else {
-		t2 *= t2;
-		n2 = t2 * t2 * dot(grad3[gi2], x2, y2);
-	}
-	// Add contributions from each corner to get the final noise value.
-	// The result is scaled to return values in the interval [-1,1].
-	return 70.0 * (n0 + n1 + n2);
 }
 
 void Terrain::NoiseHeightMap()
@@ -647,22 +612,6 @@ void Terrain::NoiseHeightMap()
 	}
 }
 
-void Terrain::RandomHeightMap()
-{
-
-	//srand(time(NULL));
-	int index;
-	for (int j = 0; j < m_terrainHeight; j++)
-	{
-		for (int i = 0; i < m_terrainWidth; i++)
-		{
-			index = (m_terrainHeight * j) + i;
-
-			m_heightMap[index].y += (((float)rand()) / (float)RAND_MAX * 8.0f) - 4.f;
-		}
-	}
-}
-
 void Terrain::Faulting()
 {
 	int x1, y1, x2, y2;
@@ -672,13 +621,13 @@ void Terrain::Faulting()
 	int random1 = 0;
 	while (random1 == 0 || x2 == x1) {
 
-		random1 = (((float)rand()) / (float)RAND_MAX * 10.0f) - 5.f;
+		random1 = randomFloat(-5.f,5.f);
 		x2 = x1 + random1;		//random between -15 and 15
 	}
 	int random2 = 0;
 	while (random2 == 0)
 	{
-		random2 = (((float)rand()) / (float)RAND_MAX * 10.0f) - 5.f;
+		random2 = randomFloat(-5.f, 5.f);
 	}
 	y2 = y1 + random2;		//random between -15 and 15
 
@@ -689,7 +638,7 @@ void Terrain::Faulting()
 	float diff = 10.0f;
 	float r = random * diff;
 	random1 = (int)(-5.0f + r);
-	float H1 = (((float)rand()) / (float)RAND_MAX * 10.0f) - 5.f;
+	float H1 = randomFloat(-5.f, 5.f);
 	float H2 = H1 * 0.5f;
 	int index;
 	bool eq;
@@ -709,6 +658,194 @@ void Terrain::Faulting()
 		}
 	}
 }
+
+void Terrain::AddVoronoiPointAt(int IndexInArray, int RegionIndex) {
+
+	// Creating a voronoi seed and the definition of a voronoi region for each voronoi seed
+	VoronoiPoint* v = new VoronoiPoint;
+	VoronoiRegion* r = new VoronoiRegion;
+	v->x = m_heightMap[IndexInArray].x;
+	v->y = m_heightMap[IndexInArray].y;
+	v->z = m_heightMap[IndexInArray].z;
+	v->index = IndexInArray;
+	v->height = RegionIndex;
+	if (RegionIndex % 2 == 0)
+		v->height = -v->height;
+	v->RegionIndex = RegionIndex;
+	r->vPoint = v;
+	m_VPoints->push_back(v);
+	m_VRegions->push_back(r);
+	m_VRegions->at(RegionIndex)->maxDist = 0.0f;
+	v = 0;
+	r = 0;
+}
+void Terrain::VoronoiDungeon()
+{
+	srand(time(NULL));
+	int nOfRooms = randomFloat(140, 200);
+	//creating voronoi Regions with parameters
+	VoronoiRegions(nOfRooms, nOfRooms / 10);
+	
+	int index = m_rooms.at(0)->vPoint->index;
+	float h = 1.50f;
+	m_heightMap[index].y += h;
+	m_heightMap[index + 1].y += h;
+	m_heightMap[index - 1].y += h;
+	m_heightMap[index + m_terrainWidth].y += h;
+	m_heightMap[index - m_terrainWidth].y += h;
+	m_heightMap[index + m_terrainWidth + 1].y += h;
+	m_heightMap[index + m_terrainWidth - 1].y += h;
+	m_heightMap[index - m_terrainWidth + 1].y += h;
+	m_heightMap[index - m_terrainWidth - 1].y += h;
+}
+void Terrain::VoronoiRegions(int numOfPoints = 200, int numOfRooms = 20) 
+{
+	ReleaseVoronoi();
+
+	m_VPoints = new vector<VoronoiPoint*>;
+	m_VRegions = new vector<VoronoiRegion*>;
+
+	bool resetMesh = false;
+	bool randomizePoints = false;
+	bool showFullDiagram = false;
+
+	// Create a grid of x*x points on the height map to be the seeds of the voronoi region. 
+	if (!randomizePoints) {
+		int k = 0;
+		int pointsInCols = (int)sqrt((float)numOfPoints);
+		int inBetweens = m_terrainWidth / pointsInCols;
+
+		for (int j = 0; j < pointsInCols; j++) {
+			for (int i = 0; i < pointsInCols; i++) {
+				int nj = (inBetweens / 2);
+				int index = ((j * inBetweens * m_terrainWidth)) + ((i * inBetweens)) + nj + (nj * m_terrainWidth);	// offset the center of the grid so that nothing is on the edges;
+				index += (int)randomFloat(-nj, nj);						//randomizing the locations
+				index += (int)randomFloat(-nj, nj) * m_terrainWidth;	//randomizing the locations
+
+				AddVoronoiPointAt(index, k);
+				k++;
+			}
+		}
+
+		numOfPoints = k;
+	}
+	else {					// randomizing the points instead of creating a grid. (Only for testing)
+		for (int k = 0; k < numOfPoints; k++) {
+			int i = 0, j = 0, index = 0;
+
+			j = (int)randomFloat(0, m_terrainHeight - 1);
+			i = (int)randomFloat(0, m_terrainWidth - 1);
+			index = (j * m_terrainWidth) + i;
+
+			AddVoronoiPointAt(index, k);
+		}
+	}
+
+	//get Voronoi data for each index of the height map
+	for (int j = 0; j < m_terrainHeight; j++) {
+		for (int i = 0; i < m_terrainWidth; i++)
+		{
+			int minIndex;
+			int index = (j * m_terrainWidth) + i;
+			float minDist = 100000.0f;
+			for (int k = 0; k < numOfPoints; k++) {
+				float dist = sqrt(pow(m_VPoints->at(k)->x - m_heightMap[index].x, 2) + pow(m_VPoints->at(k)->z - m_heightMap[index].z, 2));
+				if (dist < minDist)
+				{
+					minDist = dist;
+					minIndex = k;
+				}
+			}
+			VoronoiData* vd = new VoronoiData;
+			vd->VorPoint = m_VPoints->at(minIndex);
+			vd->dist = minDist;
+			m_heightMap[index].VorData = vd;
+			vd = 0;
+
+			//adding point to the region
+			int RegionIndex = m_VPoints->at(minIndex)->RegionIndex;
+			/*if (!m_VRegions->at(RegionIndex)->VRegionIndices) {
+			m_VRegions->at(RegionIndex)->VRegionIndices = new vector<int>;
+			}*/
+			m_VRegions->at(RegionIndex)->VRegionIndices.push_back(index);
+			//checking if the current distance is greater than the max dist (minDist is the current distance from the point)
+			if (minDist > m_VRegions->at(RegionIndex)->maxDist) {
+				m_VRegions->at(RegionIndex)->maxDist = minDist;
+			}
+
+		}
+	}
+
+	//if the mesh needs to be reset (Clearing all voronoi regions already present on the map)
+	if (resetMesh)
+	{
+		for (int j = 0; j < m_terrainHeight; j++) {
+			for (int i = 0; i < m_terrainWidth; i++) {
+				int index = (j * m_terrainWidth) + i;
+				m_heightMap[index].y = 0.0f;
+				m_heightMap[index].walkable = 0.0f;
+			}
+		}
+	}
+
+
+	//Get n unique rooms from the generated voronoi regions
+	int* n = new int[numOfRooms];
+	int numOfRows = sqrt(numOfPoints);
+	for (int i = 0; i < numOfRooms; i++) {
+		n[i] = (int)randomFloat(numOfRows + 1, (float)numOfPoints - numOfRows - 1);
+
+		if ((n[i] % numOfRows == 0) || (n[i] % numOfRows == numOfRows - 1)) //Left Right Border
+		{
+			i--;
+			continue;
+		}
+		for (int j = i - 1; j >= 0; j--)
+		{
+			//check for adjescent room
+			if (n[i] == n[j] || n[i] + 1 == n[j] || n[i] - 1 == n[j] || n[i] + numOfRows == n[j] || n[i] - numOfRows == n[j] || n[i] - numOfRows + 1 == n[j] || n[i] - numOfRows - 1 == n[j] || n[i] + 1 + numOfRows == n[j] || n[i] - 1 + numOfRows == n[j])
+			{
+				i--;
+				break;
+			}
+		}
+	}
+
+	//pushing all the unique rooms into a new vector.
+	for (int planes = 0; planes < numOfRooms; planes++) {
+		m_rooms.push_back(m_VRegions->at(n[planes]));
+	}
+
+	//settingHeight so that the dungeon is indented / show all the voronoi regions if needed
+	if (showFullDiagram) {
+		for (int j = 0; j < m_terrainHeight; j++) {
+			for (int i = 0; i < m_terrainWidth; i++) {
+
+				int index = (j * m_terrainWidth) + i;
+				int regionIndex = m_heightMap[index].VorData->VorPoint->RegionIndex;
+
+				m_heightMap[index].y = 0;
+				m_heightMap[index].y = m_heightMap[index].VorData->VorPoint->RegionIndex;
+			}
+		}
+	}
+	else {
+		for (int planes = 0; planes < numOfRooms; planes++) {
+			int s = m_VRegions->at(n[planes])->VRegionIndices.size();
+			for (int i = 0; i < s; i++) {
+				int index = m_VRegions->at(n[planes])->VRegionIndices.at(i);
+				if (m_heightMap[index].walkable == 0.0f) {
+					m_heightMap[index].y += m_dungeonDepth;
+					m_heightMap[index].walkable = GetWalkableValue(m_heightMap[index].x, m_heightMap[index].z);
+				}
+			}
+		}
+	}
+	//ReleaseVornoi();
+	DelanuayTriangles();
+	return;
+}
+
 
 void Terrain::CalculateTextureCoordinates()
 {
@@ -767,8 +904,10 @@ void Terrain::CalculateTextureCoordinates()
 	return;
 }
 
-bool Terrain::SmoothenHeightMap(ID3D11Device* device)
+bool Terrain::SmoothenHeightMap(ID3D11Device* device, float smoothenFactor)
 {
+	if (smoothenFactor == 0) smoothenFactor = 1.f; // Avoid dividing by zero;
+
 	bool result;
 
 	int index, i, j, count = 0;
@@ -858,7 +997,7 @@ bool Terrain::SmoothenHeightMap(ID3D11Device* device)
 
 			// Normalize the final shared normal for this vertex and store it in the height map array.
 			m_heightMap[index].x = (float)i;
-			m_heightMap[index].y = (float)(m_heightMap[index].y + sum_y) / 4;
+			m_heightMap[index].y = (float)(m_heightMap[index].y + sum_y)/ smoothenFactor;
 			m_heightMap[index].z = (float)j;
 		}
 	}
@@ -876,11 +1015,16 @@ bool Terrain::SmoothenHeightMap(ID3D11Device* device)
 	}
 }
 
+float Terrain::randomFloat(float a, float b) {
+	float random = ((float)rand()) / (float)RAND_MAX;
+	float diff = b - a;
+	float r = random * diff;
+	return a + r;
+}
 int Terrain::fastfloor(double x)
 {
 	return x > 0 ? (int)x : (int)x - 1;
 }
-
 double Terrain::dot(int g[], double x, double y) {
 	return g[0] * x + g[1] * y;
 }
@@ -890,11 +1034,59 @@ double Terrain::mix(double a, double b, double t) {
 double Terrain::fade(double t) {
 	return t * t * t * (t * (t * 6 - 15) + 10);
 }
-
-
-bool Terrain::Update()
-{
-	return true;
+double Terrain::simplexNoise(double xin, double yin) {
+	double n0, n1, n2; // Noise contributions from the three corners
+	// Skew the input space to determine which simplex cell we're in
+	double F2 = 0.5 * (sqrt(3.0) - 1.0);
+	double s = (xin + yin) * F2; // Hairy factor for 2D
+	int i = fastfloor(xin + s);
+	int j = fastfloor(yin + s);
+	double G2 = (3.0 - sqrt(3.0)) / 6.0;
+	double t = (i + j) * G2;
+	double X0 = i - t; // Unskew the cell origin back to (x,y) space
+	double Y0 = j - t;
+	double x0 = xin - X0; // The x,y distances from the cell origin
+	double y0 = yin - Y0;
+	// For the 2D case, the simplex shape is an equilateral triangle.
+	// Determine which simplex we are in.
+	int i1, j1; // Offsets for second (middle) corner of simplex in (i,j) coords
+	if (x0 > y0) { i1 = 1; j1 = 0; } // lower triangle, XY order: (0,0)->(1,0)->(1,1)
+	else { i1 = 0; j1 = 1; } // upper triangle, YX order: (0,0)->(0,1)->(1,1)
+	// A step of (1,0) in (i,j) means a step of (1-c,-c) in (x,y), and
+	// a step of (0,1) in (i,j) means a step of (-c,1-c) in (x,y), where
+	// c = (3-sqrt(3))/6
+	double x1 = x0 - i1 + G2; // Offsets for middle corner in (x,y) unskewed coords
+	double y1 = y0 - j1 + G2;
+	double x2 = x0 - 1.0 + 2.0 * G2; // Offsets for last corner in (x,y) unskewed coords
+	double y2 = y0 - 1.0 + 2.0 * G2;
+	// Work out the hashed gradient indices of the three simplex corners
+	int ii = i & 255;
+	int jj = j & 255;
+	int gi0 = perm[ii + perm[jj]] % 12;
+	int gi1 = perm[ii + i1 + perm[jj + j1]] % 12;
+	int gi2 = perm[ii + 1 + perm[jj + 1]] % 12;
+	// Calculate the contribution from the three corners
+	double t0 = 0.5 - x0 * x0 - y0 * y0;
+	if (t0 < 0) n0 = 0.0;
+	else {
+		t0 *= t0;
+		n0 = t0 * t0 * dot(grad3[gi0], x0, y0); // (x,y) of grad3 used for 2D gradient
+	}
+	double t1 = 0.5 - x1 * x1 - y1 * y1;
+	if (t1 < 0) n1 = 0.0;
+	else {
+		t1 *= t1;
+		n1 = t1 * t1 * dot(grad3[gi1], x1, y1);
+	}
+	double t2 = 0.5 - x2 * x2 - y2 * y2;
+	if (t2 < 0) n2 = 0.0;
+	else {
+		t2 *= t2;
+		n2 = t2 * t2 * dot(grad3[gi2], x2, y2);
+	}
+	// Add contributions from each corner to get the final noise value.
+	// The result is scaled to return values in the interval [-1,1].
+	return 70.0 * (n0 + n1 + n2);
 }
 
 float* Terrain::GetWavelength()
@@ -905,4 +1097,267 @@ float* Terrain::GetWavelength()
 float* Terrain::GetAmplitude()
 {
 	return &m_amplitude;
+}
+
+void Terrain::ReleaseVoronoi()
+{
+	if (m_VPoints) {
+		for (std::vector< VoronoiPoint* >::iterator it = m_VPoints->begin(); it != m_VPoints->end(); ++it)
+		{
+			delete (*it);
+		}
+		m_VPoints->clear();
+		delete m_VPoints;
+		m_VPoints = 0;
+	}
+
+	if (m_VRegions) {
+
+		for (std::vector< VoronoiRegion* >::iterator it = m_VRegions->begin(); it != m_VRegions->end(); ++it)
+		{
+			delete (*it);
+		}
+		m_VRegions->clear();
+		delete m_VRegions;
+		m_VRegions = 0;
+	}
+
+	if (!m_rooms.empty())		m_rooms.clear();
+
+	if (!m_corridors.empty()) {
+		for (vector<vector<HeightMapType*>>::iterator i = m_corridors.begin(); i != m_corridors.end(); ++i) {
+			(*i).clear();
+		}
+		m_corridors.clear();
+	}
+
+	return;
+}
+void Terrain::DelanuayTriangles() {
+	//If VoronoiRegions exists
+	if (m_VRegions) {
+
+#pragma region UsingExternalLibraryToCreateDelaunayTriangles
+
+		//adding points to algorithm
+		vector<Vec2f> points;
+		int nPoints = m_rooms.size();
+		for (int i = 0; i < nPoints; i++) {
+			points.push_back(Vec2f(m_rooms.at(i)->vPoint->x, m_rooms.at(i)->vPoint->z, i));
+		}
+		//using algorithm to get delaunay triangluation
+		Delaunay triangulation;
+		vector<Triangle> triangles = triangulation.triangulate(points);
+		vector<Edge> edges = triangulation.getEdges();
+
+#pragma endregion
+
+		//obtaining weights of edges as distances between points
+		int nEdges = edges.size();
+		for (std::vector< Edge >::iterator e = edges.begin(); e != edges.end(); ++e) {
+			e->weight = sqrt(pow(e->p2.x - e->p1.x, 2) + pow(e->p2.y - e->p1.y, 2));
+		}
+
+
+		//sorting the edges array according to weights
+		std::sort(edges.begin(), edges.end());
+
+		//finding minimum spanning tree from graph obtaned in delaunay using Kruskal's Algorithm
+		vector<Edge*> minSpanTree;
+
+		//finding Extra corridors to increse circtularity of the dungeon
+		vector<Edge*> extraCorridors;
+		for (std::vector< Edge >::iterator e = edges.begin(); e != edges.end(); ++e)
+		{
+			bool duplicate = false;
+			//check for duplicates
+			for (std::vector< Edge* >::iterator m = minSpanTree.begin(); m != minSpanTree.end(); ++m)
+			{
+				if ((*m)->p1 == (e->p1) && (*m)->p2 == (e->p2) || (*m)->p1 == (e->p2) && (*m)->p2 == (e->p1))
+				{
+					duplicate = true;
+					break;
+				}
+			}
+
+			//if its not a duplicate
+			if (!duplicate) {
+				minSpanTree.push_back(e._Ptr);
+
+				if (isCircular(minSpanTree)) {
+					minSpanTree.pop_back();
+					if (randomFloat(0.0f, 1.0f) < 0.2f)		//20% chance to add a new corridor to increase circularity
+						extraCorridors.push_back(e._Ptr);
+				}
+
+				if (minSpanTree.size() == nPoints - 1)
+					break;		//enough points obtained
+			}
+
+		}
+
+		//append the two corridors so that the minimum spanning tree stays in tact along with adding extra corridors
+		minSpanTree.insert(minSpanTree.end(), extraCorridors.begin(), extraCorridors.end());
+
+		makeCorridors(minSpanTree);
+
+		//release Data
+		points.clear();
+
+		extraCorridors.clear();
+
+		minSpanTree.clear();
+
+		triangles.clear();
+
+		edges.clear();
+	}
+	return;
+
+}
+bool Terrain::isCircular(vector<Edge*>& edges) {
+	int nPoints = m_rooms.size();
+
+#pragma region creatingAdjList
+	//Create Adjesency list
+	vector<int>** adj = new vector<int> * [nPoints];
+	for (int i = 0; i < nPoints; i++) {
+		adj[i] = new vector<int>;
+	}
+
+	for (std::vector< Edge* >::iterator e = edges.begin(); e != edges.end(); ++e) {
+		for (int i = 0; i < nPoints; i++) {
+			if ((*e)->p1.index == i) {
+				if (std::find(adj[i]->begin(), adj[i]->end(), (*e)->p2.index) == adj[i]->end())	//element p2 not found in adj list
+					adj[i]->push_back((*e)->p2.index);
+			}
+			else if ((*e)->p2.index == i) {
+				if (std::find(adj[i]->begin(), adj[i]->end(), (*e)->p1.index) == adj[i]->end())	//element p1 not found in adj list
+					adj[i]->push_back((*e)->p1.index);
+			}
+		}
+	}
+
+#pragma endregion
+
+	bool* visited = new bool[nPoints];
+
+	for (int i = 0; i < nPoints; i++)
+		visited[i] = false;
+
+	//Here the back edge is used to check if the currently added edge creates a circularity in the graph.
+	if (isCircular((edges.back())->p1.index, visited, adj, -1)) {
+		return true;
+	}
+
+	delete[] visited;
+	visited = 0;
+
+
+	//releasing memory before leaving
+	for (int i = 0; i < nPoints; i++) {
+		adj[i]->clear();
+
+	}
+	delete[] adj;
+	adj = 0;
+
+	//returning false if no circularity
+	return false;
+}
+bool Terrain::isCircular(int v, bool visited[], vector<int, allocator<int>>** adj, int parent) {
+
+	visited[v] = true;
+
+	for (vector<int>::iterator i = adj[v]->begin(); i != adj[v]->end(); ++i) {
+		int ind = (*i);
+		if (!visited[ind])
+		{
+			if (isCircular(ind, visited, adj, v))
+				return true;
+		}
+		else	if (ind != parent)
+			return true;
+	}
+
+
+
+	return false;
+
+}
+void Terrain::makeCorridors(const vector<Edge*>& tree) {
+
+	for (int i = 0; i < tree.size(); i++) {
+		//getting index of the point and accessing the index in terms for the heightmap
+		int p1Index = m_rooms.at(tree.at(i)->p1.index)->vPoint->index;
+		int p2Index = m_rooms.at(tree.at(i)->p2.index)->vPoint->index;
+
+		//obtaining x1 nad y1 from the given index
+		int x1 = p1Index % (m_terrainHeight), x2 = p2Index % (m_terrainHeight);
+		int y1 = p1Index / m_terrainHeight, y2 = p2Index / m_terrainHeight;
+		int ycol1 = y1, ycol2 = y2, xcol1 = x1, xcol2 = x2;
+		bool yswap = false, xswap = false;
+		//checking which one is smaller
+		if (x1 > x2) {
+			int temp = x1;
+			x1 = x2;
+			x2 = temp;
+			/*xcol1 = x2;
+			xcol2 = x1;
+			*/
+			xswap = true;
+		}
+
+		if (y1 > y2) {
+			int temp = y1;
+			y1 = y2;
+			y2 = temp;
+			/*ycol1 = y2;
+			ycol2 = y1;
+			*/
+			yswap = true;
+		}
+
+		vector<HeightMapType*> c1, c2;
+		//creating columns
+		for (int j = x1; j <= x2; j++)
+		{
+			//giving it a height using the original position of y2
+			for (int k = ycol2 - 2; k < ycol2 + 2; k++) {
+				if (m_heightMap[(k * m_terrainHeight) + j].walkable == 0.0f) {
+					int index = (k * m_terrainHeight) + j;
+					m_heightMap[index].walkable = GetWalkableValue(m_heightMap[index].x, m_heightMap[index].z);
+					m_heightMap[index].y += m_dungeonDepth;
+				}
+			}
+			//adding the required points to a vector to access later
+			c1.push_back(&m_heightMap[(ycol2 * m_terrainHeight) + j]);
+		}
+		for (int j = y1; j <= y2; j++)
+		{
+			//giving it a width using the original position of x1
+			for (int k = xcol1 - 2; k < xcol1 + 2; k++) {
+				if (m_heightMap[(j * m_terrainHeight) + k].walkable == 0.0f) {
+					int index = (j * m_terrainHeight) + k;
+					m_heightMap[index].walkable = GetWalkableValue(m_heightMap[index].x, m_heightMap[index].z);
+					m_heightMap[index].y += m_dungeonDepth;
+				}
+			}
+			//adding required points to vector to access later
+			c2.push_back(&m_heightMap[(j * m_terrainHeight) + xcol1]);
+		}
+
+		//collecting both the corridors into a main vector
+		m_corridors.push_back(c1);
+		m_corridors.push_back(c2);
+
+	}
+
+	return;
+}
+float Terrain::GetWalkableValue(float i, float j)
+{
+	float f = (float)simplexNoise((double)i * m_wavelength, (double)j * m_wavelength) * m_amplitude;
+	f = max(f * 1.25f, 0.0f); //clamping values with 0
+	return f + 1.0f;		//adding 1 so that player can always walk
 }

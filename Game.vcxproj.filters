@@ -78,6 +78,18 @@
     <ClInclude Include="TerrainShader.h">
       <Filter>Shaders</Filter>
     </ClInclude>
+    <ClInclude Include="Delaunay.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Edge.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="DVector2.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Triangle.h">
+      <Filter>Common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
@@ -127,6 +139,12 @@
     </ClCompile>
     <ClCompile Include="TerrainShader.cpp">
       <Filter>Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="Delaunay.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="Triangle.cpp">
+      <Filter>Common</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

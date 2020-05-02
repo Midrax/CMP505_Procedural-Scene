@@ -109,8 +109,6 @@ void Game::Update(DX::StepTimer const& timer)
 	audio.Update();
 	input.Update();
 
-    terrain.Update();
-
 	if (inputCommands.escape) {
 		ExitGame();
 	}
@@ -257,7 +255,7 @@ void Game::CreateDeviceDependentResources()
     CreateDDSTextureFromFile(device, L"Assets/mountain.dds", nullptr, m_mountain_texture.ReleaseAndGetAddressOf());
     CreateDDSTextureFromFile(device, L"Assets/grass.dds", nullptr, m_grass_texture.ReleaseAndGetAddressOf());
     // Terrain
-    terrain.Initialize(device, 128, 128);
+    terrain.Initialize(device, 256, 256);
     terrain.GenerateHeightMap(device);
     device;
     context;
@@ -355,16 +353,16 @@ void Game::UpdateCamera()
         move -= camera.forward;
 
     if (inputCommands.left)
-        move -= camera.right;
+        move -= camera.right*MOVEMENT_GAIN;
 
     if (inputCommands.right)
-        move += camera.right;
+        move += camera.right*MOVEMENT_GAIN;
 
     if (inputCommands.space)
-        move.y += 1.f;
+        move.y += MOVEMENT_GAIN;
 
     if (inputCommands.q_key)
-        move.y -= 1.f;
+        move.y -= MOVEMENT_GAIN;
 
     move *= MOVEMENT_GAIN * deltaTime;
 
