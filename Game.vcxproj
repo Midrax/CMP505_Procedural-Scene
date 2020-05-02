@@ -215,11 +215,7 @@
     <ResourceCompile Include="resource.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="Assets\cloud001.dds" />
-    <Image Include="Assets\cloud002.dds" />
     <Image Include="Assets\grass.dds" />
-    <Image Include="Assets\roomtexture.dds" />
-    <Image Include="Assets\seafloor.dds" />
     <Image Include="directx.ico" />
   </ItemGroup>
   <ItemGroup>

@@ -14,6 +14,9 @@
     <Filter Include="Rendering">
       <UniqueIdentifier>{a2d7fb87-a952-4f29-a9e2-bba2009a9163}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{ff84de43-b24c-434e-9c72-8f0a9163ceae}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
@@ -24,9 +27,6 @@
     <ClInclude Include="DeviceResources.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="InputSystem.h" />
-    <ClInclude Include="AudioModule.h" />
-    <ClInclude Include="ReadData.h" />
     <ClInclude Include="imgui.h">
       <Filter>ImGui</Filter>
     </ClInclude>
@@ -51,19 +51,32 @@
     <ClInclude Include="imgui_impl_win32.h">
       <Filter>ImGui</Filter>
     </ClInclude>
-    <ClInclude Include="Terrain.h" />
     <ClInclude Include="Camera.h">
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="Light.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="Skydome.h" />
-    <ClInclude Include="SkydomeShader.h">
+    <ClInclude Include="AudioModule.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="InputSystem.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="ReadData.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Skydome.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="TerrainShader.h">
+    <ClInclude Include="Terrain.h">
       <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="SkydomeShader.h">
+      <Filter>Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="TerrainShader.h">
+      <Filter>Shaders</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -73,8 +86,6 @@
     <ClCompile Include="DeviceResources.cpp">
       <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="InputSystem.cpp" />
-    <ClCompile Include="AudioModule.cpp" />
     <ClCompile Include="imgui.cpp">
       <Filter>ImGui</Filter>
     </ClCompile>
@@ -93,19 +104,29 @@
     <ClCompile Include="imgui_widgets.cpp">
       <Filter>ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="Terrain.cpp" />
     <ClCompile Include="Camera.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
     <ClCompile Include="Light.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="Skydome.cpp" />
-    <ClCompile Include="SkydomeShader.cpp">
+    <ClCompile Include="AudioModule.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="InputSystem.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="Skydome.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="TerrainShader.cpp">
+    <ClCompile Include="Terrain.cpp">
       <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="SkydomeShader.cpp">
+      <Filter>Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="TerrainShader.cpp">
+      <Filter>Shaders</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -115,19 +136,7 @@
     <Image Include="directx.ico">
       <Filter>Assets</Filter>
     </Image>
-    <Image Include="Assets\roomtexture.dds">
-      <Filter>Assets</Filter>
-    </Image>
-    <Image Include="Assets\cloud001.dds">
-      <Filter>Assets</Filter>
-    </Image>
-    <Image Include="Assets\cloud002.dds">
-      <Filter>Assets</Filter>
-    </Image>
     <Image Include="Assets\grass.dds">
-      <Filter>Assets</Filter>
-    </Image>
-    <Image Include="Assets\seafloor.dds">
       <Filter>Assets</Filter>
     </Image>
   </ItemGroup>
@@ -139,18 +148,18 @@
   <ItemGroup>
     <None Include="packages.config" />
     <None Include="skydome_ps.hlsl">
-      <Filter>Rendering</Filter>
+      <Filter>Shaders</Filter>
     </None>
     <None Include="skydome_vs.hlsl">
-      <Filter>Rendering</Filter>
+      <Filter>Shaders</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="light_ps.hlsl">
-      <Filter>Rendering</Filter>
+      <Filter>Shaders</Filter>
     </FxCompile>
     <FxCompile Include="light_vs.hlsl">
-      <Filter>Rendering</Filter>
+      <Filter>Shaders</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
