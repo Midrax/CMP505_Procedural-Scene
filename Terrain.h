@@ -79,7 +79,7 @@ private:
 	void VoronoiDungeon();
 	void AddVoronoiPointAt(int IndexInArray, int RegionIndex);
 	void VoronoiRegions(int numOfPoints, int numOfRooms);
-	void DelanuayTriangles();
+	void DelaunayTriangles();
 	bool isCircular(vector<Edge*>& edges);
 	bool isCircular(int v, bool visited[], vector<int, allocator<int>>** adj, int parent);
 	void makeCorridors(const vector<Edge*>& tree);

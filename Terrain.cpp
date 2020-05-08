@@ -29,7 +29,7 @@ bool Terrain::Initialize(ID3D11Device* device, int terrainWidth, int terrainHeig
 	m_frequency = m_terrainWidth / 20;
 	m_amplitude = 10.0f;
 	m_wavelength = 0.1f;
-	m_dungeonDepth = 5;
+	m_dungeonDepth = 4;
 
 	// Create the structure to hold the terrain data.
 	m_heightMap = new HeightMapType[m_terrainWidth * m_terrainHeight];
@@ -687,7 +687,7 @@ void Terrain::VoronoiDungeon()
 	VoronoiRegions(nOfRooms, nOfRooms / 10);
 	
 	int index = m_rooms.at(0)->vPoint->index;
-	float h = 1.50f;
+	float h = 0.50f;
 	m_heightMap[index].y += h;
 	m_heightMap[index + 1].y += h;
 	m_heightMap[index - 1].y += h;
@@ -789,7 +789,7 @@ void Terrain::VoronoiRegions(int numOfPoints = 200, int numOfRooms = 20)
 	}
 
 
-	//Get n unique rooms from the generated voronoi regions
+	// Get n unique rooms from the generated voronoi regions
 	int* n = new int[numOfRooms];
 	int numOfRows = sqrt(numOfPoints);
 	for (int i = 0; i < numOfRooms; i++) {
@@ -802,7 +802,7 @@ void Terrain::VoronoiRegions(int numOfPoints = 200, int numOfRooms = 20)
 		}
 		for (int j = i - 1; j >= 0; j--)
 		{
-			//check for adjescent room
+			//check for adjacent room
 			if (n[i] == n[j] || n[i] + 1 == n[j] || n[i] - 1 == n[j] || n[i] + numOfRows == n[j] || n[i] - numOfRows == n[j] || n[i] - numOfRows + 1 == n[j] || n[i] - numOfRows - 1 == n[j] || n[i] + 1 + numOfRows == n[j] || n[i] - 1 + numOfRows == n[j])
 			{
 				i--;
@@ -842,7 +842,7 @@ void Terrain::VoronoiRegions(int numOfPoints = 200, int numOfRooms = 20)
 		}
 	}
 	//ReleaseVornoi();
-	DelanuayTriangles();
+	DelaunayTriangles();
 	return;
 }
 
@@ -1133,24 +1133,20 @@ void Terrain::ReleaseVoronoi()
 
 	return;
 }
-void Terrain::DelanuayTriangles() {
+void Terrain::DelaunayTriangles() {
 	//If VoronoiRegions exists
 	if (m_VRegions) {
 
-#pragma region UsingExternalLibraryToCreateDelaunayTriangles
-
-		//adding points to algorithm
+		// Adding points to algorithm
 		vector<Vec2f> points;
 		int nPoints = m_rooms.size();
 		for (int i = 0; i < nPoints; i++) {
 			points.push_back(Vec2f(m_rooms.at(i)->vPoint->x, m_rooms.at(i)->vPoint->z, i));
 		}
-		//using algorithm to get delaunay triangluation
+		// Using algorithm to get delaunay triangulation
 		Delaunay triangulation;
 		vector<Triangle> triangles = triangulation.triangulate(points);
 		vector<Edge> edges = triangulation.getEdges();
-
-#pragma endregion
 
 		//obtaining weights of edges as distances between points
 		int nEdges = edges.size();
@@ -1158,14 +1154,13 @@ void Terrain::DelanuayTriangles() {
 			e->weight = sqrt(pow(e->p2.x - e->p1.x, 2) + pow(e->p2.y - e->p1.y, 2));
 		}
 
-
-		//sorting the edges array according to weights
+		// Sorting the edges array according to weights
 		std::sort(edges.begin(), edges.end());
 
-		//finding minimum spanning tree from graph obtaned in delaunay using Kruskal's Algorithm
+		// Finding minimum spanning tree from graph obtaned in delaunay using Kruskal's Algorithm
 		vector<Edge*> minSpanTree;
 
-		//finding Extra corridors to increse circtularity of the dungeon
+		// finding Extra corridors to increse circularity of the dungeon
 		vector<Edge*> extraCorridors;
 		for (std::vector< Edge >::iterator e = edges.begin(); e != edges.end(); ++e)
 		{
@@ -1218,8 +1213,7 @@ void Terrain::DelanuayTriangles() {
 bool Terrain::isCircular(vector<Edge*>& edges) {
 	int nPoints = m_rooms.size();
 
-#pragma region creatingAdjList
-	//Create Adjesency list
+	// Create adjacenct list
 	vector<int>** adj = new vector<int> * [nPoints];
 	for (int i = 0; i < nPoints; i++) {
 		adj[i] = new vector<int>;
@@ -1237,8 +1231,6 @@ bool Terrain::isCircular(vector<Edge*>& edges) {
 			}
 		}
 	}
-
-#pragma endregion
 
 	bool* visited = new bool[nPoints];
 
