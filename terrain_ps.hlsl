@@ -32,8 +32,8 @@ float4 main(InputType input) : SV_TARGET
     float	lightIntensity;
     float4	color;
 	float blendAmount;
-	float slope = 1 - input.normal.y;
-	float thresh1 = 0.2f, thresh2 = 0.7f;
+	float slope = input.normal.y + 1;
+	float threshMin = 0.2f, threshMax = 0.9f;
 
 	// Invert the light direction for calculations.
 	lightDir = normalize(input.position3D - lightPosition);
@@ -50,13 +50,37 @@ float4 main(InputType input) : SV_TARGET
 	textureColor2 = shaderTexture2.Sample(SampleType, input.tex);
 	textureColor3 = shaderTexture3.Sample(SampleType, input.tex);
 
+	// Height Texturing
+	float variance = 0;
+	float yValue = input.position3D.y + 2;
+
+	if (yValue > 0.2) {
+		variance = 1;
+	}
+	else if (yValue < -0.2) {
+		variance = 0;
+	}
+	else {
+		variance = (yValue + 0.2) / 0.4;
+	}
+
 	// Slope Texturing
-	if (input.normal.y > - 0.5)
+	if (slope <= threshMin) // If blend = 1 Slope Texture is true;
 	{
-		blendAmount = (input.normal.y + 0.6) / (0.4);
+		blendAmount = 0;
+		color = color * ((textureColor1 * blendAmount) + (textureColor2 * (1 - blendAmount)));
+	}
+	if (slope > threshMin && input.normal.y <= threshMax) // If blend = 1 Slope Texture is true;
+	{
+		blendAmount = (slope - threshMin)/(threshMax-threshMin);
 		color = color * ((textureColor3 * blendAmount) + (textureColor2 * (1 - blendAmount)));
 	}
-	else
+	if (slope > threshMax) // If blend = 1 Slope Texture is true;
+	{
+		blendAmount = 1;
+		color = color * ((textureColor1 * blendAmount) + (textureColor2 * (1 - blendAmount)));
+	}
+	/*else
 	{
 		float variance = 0;
 		float yValue = input.position3D.y + 2;
@@ -71,7 +95,7 @@ float4 main(InputType input) : SV_TARGET
 		}
 		color = color * ((textureColor1 * variance) + (textureColor2 * (1 - variance)));
 
-	}
+	}*/
     return color;
 }
 

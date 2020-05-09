@@ -21,6 +21,12 @@ struct InputCommands
 	bool alt;
 	bool tab;
 
+	bool v_key;
+	bool r_key;
+	bool n_key;
+	bool f_key;
+	bool x_key;
+
 	bool squareButton;
 	bool crossButton;
 	bool circleButton;

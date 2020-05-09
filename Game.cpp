@@ -253,7 +253,7 @@ void Game::CreateDeviceDependentResources()
     terrainShader.InitStandard(device, L"terrain_vs.cso", L"terrain_ps.cso");
     // Textures
     CreateDDSTextureFromFile(device, L"Assets/mountain.dds", nullptr, m_mountain_texture.ReleaseAndGetAddressOf());
-    CreateDDSTextureFromFile(device, L"Assets/walls.dds", nullptr, m_walls_texture.ReleaseAndGetAddressOf());
+    CreateDDSTextureFromFile(device, L"Assets/rock.dds", nullptr, m_walls_texture.ReleaseAndGetAddressOf());
     CreateDDSTextureFromFile(device, L"Assets/grass.dds", nullptr, m_grass_texture.ReleaseAndGetAddressOf());
     // Terrain
     terrain.Initialize(device, 256, 256);
@@ -309,6 +309,8 @@ void Game::OnDeviceRestored()
 
 void Game::UpdateCamera()
 {
+    auto device = m_deviceResources->GetD3DDevice();
+
     float deltaTime = float(m_timer.GetElapsedSeconds());
 
     auto mouse = input.mouse->GetState();
@@ -366,6 +368,18 @@ void Game::UpdateCamera()
         move.y -= MOVEMENT_GAIN;
 
     move *= MOVEMENT_GAIN * deltaTime;
+
+    if (inputCommands.v_key)
+        terrain.VoronoiDungeon(device);
+    if (inputCommands.n_key)
+        terrain.NoiseHeightMap(device);
+    if (inputCommands.f_key)
+        terrain.Faulting(device);
+    if (inputCommands.r_key)
+        terrain.RandomHeightMap(device);
+    if (inputCommands.x_key)
+        terrain.SmoothenHeightMap(device, 1.25);
+
 
     camera.position += move;
     camera.Update();

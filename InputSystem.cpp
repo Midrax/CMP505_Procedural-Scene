@@ -27,6 +27,12 @@ void InputSystem::Initialize(HWND window)
 	m_GameInput.alt = false;
 	m_GameInput.tab = false;
 
+	m_GameInput.v_key = false;
+	m_GameInput.r_key = false;
+	m_GameInput.n_key = false;
+	m_GameInput.f_key = false;
+	m_GameInput.x_key = false;
+
 	// Initialize Controller
 	m_GameInput.squareButton = false;
 	m_GameInput.crossButton = false;
@@ -141,7 +147,7 @@ void InputSystem::Update()
 	else
 		m_GameInput.left_shift = false;
 
-	if (keys.pressed.LeftControl)
+	if (keys.released.LeftControl)
 	{
 		m_GameInput.ctrl = !m_GameInput.ctrl;
 	}
@@ -167,6 +173,40 @@ void InputSystem::Update()
 	else
 		m_GameInput.tab = false;
 
+	if (keys.pressed.V)
+	{
+		m_GameInput.v_key = true;
+	}
+	else
+		m_GameInput.v_key = false;
+
+	if (keys.pressed.R)
+	{
+		m_GameInput.r_key = true;
+	}
+	else
+		m_GameInput.r_key = false;
+
+	if (keys.pressed.N)
+	{
+		m_GameInput.n_key = true;
+	}
+	else
+		m_GameInput.n_key = false;
+
+	if (keys.pressed.F)
+	{
+		m_GameInput.f_key = true;
+	}
+	else
+		m_GameInput.f_key = false;
+
+	if (keys.pressed.X)
+	{
+		m_GameInput.x_key = true;
+	}
+	else
+		m_GameInput.x_key = false;
 
 	mouseButtons.Update(mouse->GetState());
 }

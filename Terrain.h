@@ -51,6 +51,10 @@ public:
 	bool Initialize(ID3D11Device*, int terrainWidth, int terrainHeight);
 	void Render(ID3D11DeviceContext*);
 	bool GenerateHeightMap(ID3D11Device*);
+	void RandomHeightMap(ID3D11Device*);
+	void Faulting(ID3D11Device*);
+	void NoiseHeightMap(ID3D11Device*);
+	void VoronoiDungeon(ID3D11Device*);
 	bool SmoothenHeightMap(ID3D11Device*, float smoothenFactor = 1.f);
 	float* GetWavelength();
 
@@ -68,7 +72,8 @@ private:
 	
 	void Faulting();
 
-	void NoiseHeightMap();
+	void NoiseHeightMap();;
+
 	double simplexNoise(double x, double y);
 	float randomFloat(float a, float b);
 	int fastfloor(double x);
@@ -77,6 +82,7 @@ private:
 	double fade(double t);
 
 	void VoronoiDungeon();
+
 	void AddVoronoiPointAt(int IndexInArray, int RegionIndex);
 	void VoronoiRegions(int numOfPoints, int numOfRooms);
 	void DelaunayTriangles();

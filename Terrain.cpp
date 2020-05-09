@@ -562,10 +562,9 @@ bool Terrain::GenerateHeightMap(ID3D11Device* device)
 	RandomHeightMap();
 	SmoothenHeightMap(device, 2);
 	NoiseHeightMap();
-	SmoothenHeightMap(device,4);
+	SmoothenHeightMap(device, 4);
 	VoronoiDungeon();
-	SmoothenHeightMap(device);
-	SmoothenHeightMap(device);
+
 	result = CalculateNormals();
 	if (!result)
 	{
@@ -596,6 +595,14 @@ void Terrain::RandomHeightMap()
 	}
 }
 
+void Terrain::RandomHeightMap(ID3D11Device* device)
+{
+	RandomHeightMap();
+	CalculateNormals();
+	CalculateTextureCoordinates();
+	InitializeBuffers(device);
+}
+
 void Terrain::NoiseHeightMap()
 {
 	int index;
@@ -610,6 +617,14 @@ void Terrain::NoiseHeightMap()
 			m_heightMap[index].z = (float)j;
 		}
 	}
+}
+
+void Terrain::NoiseHeightMap(ID3D11Device* device)
+{
+	NoiseHeightMap();
+	CalculateNormals();
+	CalculateTextureCoordinates();
+	InitializeBuffers(device);
 }
 
 void Terrain::Faulting()
@@ -659,6 +674,14 @@ void Terrain::Faulting()
 	}
 }
 
+void Terrain::Faulting(ID3D11Device* device)
+{
+	Faulting();
+	CalculateNormals();
+	CalculateTextureCoordinates();
+	InitializeBuffers(device);
+}
+
 void Terrain::AddVoronoiPointAt(int IndexInArray, int RegionIndex) {
 
 	// Creating a voronoi seed and the definition of a voronoi region for each voronoi seed
@@ -697,6 +720,13 @@ void Terrain::VoronoiDungeon()
 	m_heightMap[index + m_terrainWidth - 1].y += h;
 	m_heightMap[index - m_terrainWidth + 1].y += h;
 	m_heightMap[index - m_terrainWidth - 1].y += h;
+}
+void Terrain::VoronoiDungeon(ID3D11Device* device)
+{
+	VoronoiDungeon();
+	CalculateNormals();
+	CalculateTextureCoordinates();
+	InitializeBuffers(device);
 }
 void Terrain::VoronoiRegions(int numOfPoints = 200, int numOfRooms = 20) 
 {
