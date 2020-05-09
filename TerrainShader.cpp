@@ -97,7 +97,7 @@ bool TerrainShader::InitStandard(ID3D11Device* device, WCHAR* vsFilename, WCHAR*
 	return true;
 }
 
-bool TerrainShader::SetShaderParameters(ID3D11DeviceContext* context, DirectX::SimpleMath::Matrix* world, DirectX::SimpleMath::Matrix* view, DirectX::SimpleMath::Matrix* projection, Light* sceneLight1, ID3D11ShaderResourceView* texture1, ID3D11ShaderResourceView* texture2)
+bool TerrainShader::SetShaderParameters(ID3D11DeviceContext* context, DirectX::SimpleMath::Matrix* world, DirectX::SimpleMath::Matrix* view, DirectX::SimpleMath::Matrix* projection, Light* sceneLight1, ID3D11ShaderResourceView* texture1, ID3D11ShaderResourceView* texture2, ID3D11ShaderResourceView* texture3)
 {
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 	MatrixBufferType* dataPtr;
@@ -128,6 +128,7 @@ bool TerrainShader::SetShaderParameters(ID3D11DeviceContext* context, DirectX::S
 	//pass the desired texture to the pixel shader.
 	context->PSSetShaderResources(0, 1, &texture1);
 	context->PSSetShaderResources(1, 1, &texture2);
+	context->PSSetShaderResources(2, 1, &texture3);
 
 	return false;
 }

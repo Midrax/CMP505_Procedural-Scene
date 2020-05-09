@@ -3,6 +3,7 @@
 
 Texture2D shaderTexture1 : register(t0);
 Texture2D shaderTexture2 : register(t1);
+Texture2D shaderTexture3 : register(t2);
 SamplerState SampleType : register(s0);
 
 
@@ -26,9 +27,13 @@ float4 main(InputType input) : SV_TARGET
 {
 	float4	textureColor1;
 	float4	textureColor2;
+	float4	textureColor3;
 	float3	lightDir;
     float	lightIntensity;
     float4	color;
+	float blendAmount;
+	float slope = 1 - input.normal.y;
+	float thresh1 = 0.2f, thresh2 = 0.7f;
 
 	// Invert the light direction for calculations.
 	lightDir = normalize(input.position3D - lightPosition);
@@ -40,26 +45,33 @@ float4 main(InputType input) : SV_TARGET
 	color = ambientColor + (diffuseColor * lightIntensity); //adding ambient
 
 	color = ambientColor + (diffuseColor * lightIntensity);
-	color = saturate((color*(1-input.position3D.y*2))/3);
 	// Sample the pixel color from the texture using the sampler at this texture coordinate location.
 	textureColor1 = shaderTexture1.Sample(SampleType, input.tex);
 	textureColor2 = shaderTexture2.Sample(SampleType, input.tex);
+	textureColor3 = shaderTexture3.Sample(SampleType, input.tex);
 
-	float variance = 0;
-	float yValue = input.position3D.y+2;
-	if (yValue > 0.2) {
-		variance = 1;
+	// Slope Texturing
+	if (input.normal.y > - 0.5)
+	{
+		blendAmount = (input.normal.y + 0.6) / (0.4);
+		color = color * ((textureColor3 * blendAmount) + (textureColor2 * (1 - blendAmount)));
 	}
-	else if (yValue < -0.2) {
-		variance = 0;
+	else
+	{
+		float variance = 0;
+		float yValue = input.position3D.y + 2;
+		if (yValue > 0.2) {
+			variance = 1;
+		}
+		else if (yValue < -0.2) {
+			variance = 0;
+		}
+		else {
+			variance = (yValue + 0.2) / 0.4;
+		}
+		color = color * ((textureColor1 * variance) + (textureColor2 * (1 - variance)));
+
 	}
-	else {
-		variance = (yValue + 0.2) / 0.4;
-	}
-
-
-	color = color * ((textureColor1 * variance) + (textureColor2 * (1- variance)));
-
     return color;
 }
 

@@ -150,7 +150,7 @@ void Game::Render()
     SimpleMath::Matrix newRotation = SimpleMath::Matrix::CreateRotationX(XM_PI);
     m_world = m_world * newRotation * newPosition3;
     terrainShader.EnableShader(context);
-    terrainShader.SetShaderParameters(context, &m_world, &(Matrix)m_view, &(Matrix)m_projection, &light, m_mountain_texture.Get(), m_grass_texture.Get());
+    terrainShader.SetShaderParameters(context, &m_world, &(Matrix)m_view, &(Matrix)m_projection, &light, m_mountain_texture.Get(), m_grass_texture.Get(), m_walls_texture.Get());
     terrain.Render(context);
 
     context;
@@ -250,9 +250,10 @@ void Game::CreateDeviceDependentResources()
     // TODO: Initialize device dependent objects here (independent of window size).
 
     // Shader
-    terrainShader.InitStandard(device, L"light_vs.cso", L"light_ps.cso");
+    terrainShader.InitStandard(device, L"terrain_vs.cso", L"terrain_ps.cso");
     // Textures
     CreateDDSTextureFromFile(device, L"Assets/mountain.dds", nullptr, m_mountain_texture.ReleaseAndGetAddressOf());
+    CreateDDSTextureFromFile(device, L"Assets/walls.dds", nullptr, m_walls_texture.ReleaseAndGetAddressOf());
     CreateDDSTextureFromFile(device, L"Assets/grass.dds", nullptr, m_grass_texture.ReleaseAndGetAddressOf());
     // Terrain
     terrain.Initialize(device, 256, 256);

@@ -173,10 +173,10 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="light_ps.hlsl">
+    <FxCompile Include="terrain_ps.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="light_vs.hlsl">
+    <FxCompile Include="terrain_vs.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
   </ItemGroup>
