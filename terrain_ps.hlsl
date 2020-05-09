@@ -64,21 +64,25 @@ float4 main(InputType input) : SV_TARGET
 		variance = (yValue + 0.2) / 0.4;
 	}
 
+	float mf = 0.5;
 	// Slope Texturing
 	if (slope <= threshMin) // If blend = 1 Slope Texture is true;
 	{
 		blendAmount = 0;
-		color = color * ((textureColor1 * blendAmount) + (textureColor2 * (1 - blendAmount)));
+		color = color * (((textureColor1 * blendAmount) + (textureColor2 * (1 - blendAmount))) 
+			+ ((textureColor1 * variance) + (textureColor2 * (1 - variance)))) * mf;
 	}
 	if (slope > threshMin && input.normal.y <= threshMax) // If blend = 1 Slope Texture is true;
 	{
 		blendAmount = (slope - threshMin)/(threshMax-threshMin);
-		color = color * ((textureColor3 * blendAmount) + (textureColor2 * (1 - blendAmount)));
+		color = color * (((textureColor3 * blendAmount) + (textureColor2 * (1 - blendAmount)))
+			+ ((textureColor1 * variance) + (textureColor2 * (1 - variance)))) * mf;
 	}
 	if (slope > threshMax) // If blend = 1 Slope Texture is true;
 	{
 		blendAmount = 1;
-		color = color * ((textureColor1 * blendAmount) + (textureColor2 * (1 - blendAmount)));
+		color = color * (((textureColor3 * blendAmount) + (textureColor2 * (1 - blendAmount)))
+			+ ((textureColor1 * variance) + (textureColor2 * (1 - variance)))) * mf;
 	}
 	/*else
 	{
