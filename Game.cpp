@@ -150,7 +150,7 @@ void Game::Render()
     SimpleMath::Matrix newRotation = SimpleMath::Matrix::CreateRotationX(XM_PI);
     m_world = m_world * newRotation * newPosition3;
     terrainShader.EnableShader(context);
-    terrainShader.SetShaderParameters(context, &m_world, &(Matrix)m_view, &(Matrix)m_projection, &light, m_mountain_texture.Get(), m_grass_texture.Get(), m_walls_texture.Get());
+    terrainShader.SetShaderParameters(context, &m_world, &(Matrix)m_view, &(Matrix)m_projection, &light, m_grass_texture.Get(), m_mountain_texture.Get(), m_walls_texture.Get());
     terrain.Render(context);
 
     context;
@@ -252,9 +252,9 @@ void Game::CreateDeviceDependentResources()
     // Shader
     terrainShader.InitStandard(device, L"terrain_vs.cso", L"terrain_ps.cso");
     // Textures
+    CreateDDSTextureFromFile(device, L"Assets/grass.dds", nullptr, m_grass_texture.ReleaseAndGetAddressOf());
     CreateDDSTextureFromFile(device, L"Assets/mountain.dds", nullptr, m_mountain_texture.ReleaseAndGetAddressOf());
     CreateDDSTextureFromFile(device, L"Assets/rock.dds", nullptr, m_walls_texture.ReleaseAndGetAddressOf());
-    CreateDDSTextureFromFile(device, L"Assets/grass.dds", nullptr, m_grass_texture.ReleaseAndGetAddressOf());
     // Terrain
     terrain.Initialize(device, 256, 256);
     terrain.GenerateHeightMap(device);

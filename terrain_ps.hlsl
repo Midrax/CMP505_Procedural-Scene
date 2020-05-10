@@ -4,6 +4,9 @@
 Texture2D shaderTexture1 : register(t0);
 Texture2D shaderTexture2 : register(t1);
 Texture2D shaderTexture3 : register(t2);
+Texture2D normalTexture1 : register(t3);
+Texture2D normalTexture2 : register(t4);
+Texture2D normalTexture3 : register(t5);
 SamplerState SampleType : register(s0);
 
 
@@ -25,9 +28,10 @@ struct InputType
 
 float4 main(InputType input) : SV_TARGET
 {
-	float4	textureColor1;
-	float4	textureColor2;
-	float4	textureColor3;
+	float4	heightTexture;
+	float4	diffuseTexture;
+	float4	slopeTexture;
+	float4	finalTexture;
 	float3	lightDir;
     float	lightIntensity;
     float4	color;
@@ -44,9 +48,9 @@ float4 main(InputType input) : SV_TARGET
 	// Determine the final amount of diffuse color based on the diffuse color combined with the light intensity.
 	color = ambientColor + (diffuseColor * lightIntensity);
 	// Sample the pixel color from the texture using the sampler at this texture coordinate location.
-	textureColor1 = shaderTexture1.Sample(SampleType, input.tex);
-	textureColor2 = shaderTexture2.Sample(SampleType, input.tex);
-	textureColor3 = shaderTexture3.Sample(SampleType, input.tex);
+	diffuseTexture = shaderTexture1.Sample(SampleType, input.tex);
+	heightTexture = shaderTexture2.Sample(SampleType, input.tex);
+	slopeTexture = shaderTexture3.Sample(SampleType, input.tex);
 
 	// Height Texturing
 	float variance = 0;
@@ -76,7 +80,14 @@ float4 main(InputType input) : SV_TARGET
 	{
 		blendAmount = 1;
 	}
-	color = color * (((textureColor1 * variance) + (textureColor2 * (1 - variance))) * (1 - blendAmount) + textureColor3 * blendAmount);
+
+	finalTexture = diffuseTexture;
+
+	finalTexture = (heightTexture * variance) + (finalTexture * (1 - variance));
+	finalTexture = (slopeTexture * blendAmount) + (finalTexture * (1 - blendAmount));
+
+	color = color * finalTexture;
+
     return color;
 }
 
