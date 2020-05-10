@@ -65,7 +65,7 @@ void Game::Initialize(HWND window, int width, int height)
     // Initialize light
     light.setAmbientColour(0.5f, 0.5f, 0.5f, 1.0f);
     light.setDiffuseColour(0.5f, 0.5f, 0.5f, 1.0f);
-    light.setPosition(0.0f, -10.0f, 1.0f);
+    light.setPosition(0.0f, -15.0f, 1.0f);
     light.setDirection(-1.0f, 1.0f, 1.0f);
 
     // Initialize Skydome
@@ -138,7 +138,7 @@ void Game::Render()
     // Render Skybox
     m_deviceResources->TurnOffCulling();
     m_deviceResources->TurnZBufferOff();
-    m_world = SimpleMath::Matrix::Identity * Matrix::CreateScale(10.f) * SimpleMath::Matrix::CreateTranslation(camera.position);
+    m_world = SimpleMath::Matrix::Identity * Matrix::CreateScale(10.f) * SimpleMath::Matrix::CreateTranslation(camera.GetPosition());
     skydome->Render(context);
     skydomeShader->Render(context, skydome->GetIndexCount(), m_world, m_view, m_projection, skydome->GetApexColor(), skydome->GetCenterColor());
     m_deviceResources->TurnOnCulling();
@@ -254,7 +254,7 @@ void Game::CreateDeviceDependentResources()
     // Textures
     CreateDDSTextureFromFile(device, L"Assets/grass.dds", nullptr, m_grass_texture.ReleaseAndGetAddressOf());
     CreateDDSTextureFromFile(device, L"Assets/mountain.dds", nullptr, m_mountain_texture.ReleaseAndGetAddressOf());
-    CreateDDSTextureFromFile(device, L"Assets/rock.dds", nullptr, m_walls_texture.ReleaseAndGetAddressOf());
+    CreateDDSTextureFromFile(device, L"Assets/rock_diffuse.dds", nullptr, m_walls_texture.ReleaseAndGetAddressOf());
     // Terrain
     terrain.Initialize(device, 256, 256);
     terrain.GenerateHeightMap(device);
@@ -327,22 +327,22 @@ void Game::UpdateCamera()
     {
         Vector3 delta = Vector3(float(mouse.x), float(mouse.y), 0.f) * ROTATION_GAIN * deltaTime;
 
-        camera.rotation.x -= delta.y * ROTATION_GAIN * deltaTime;
-        camera.rotation.y -= delta.x * ROTATION_GAIN * deltaTime;
+        camera.SetPitch(camera.GetRotation().x - delta.y * ROTATION_GAIN * deltaTime);
+        camera.SetYaw(camera.GetRotation().y - delta.x * ROTATION_GAIN * deltaTime);
 
         // limit pitch to straight up or straight down
         // with a little fudge-factor to avoid gimbal lock
         float limit = 90.0f - 0.01f;
-        camera.rotation.x = (std::max)(-limit, camera.rotation.x);
-        camera.rotation.x = (std::min)(+limit, camera.rotation.x);
+        camera.SetPitch((std::max)(-limit, camera.GetRotation().x));
+        camera.SetPitch((std::min)(+limit, camera.GetRotation().x));
 
-        if (camera.rotation.y > 360.f)
+        if (camera.GetRotation().y > 360.f)
         {
-            camera.rotation.y -= 360.f;
+            camera.SetYaw(camera.GetRotation().y - 360.f);
         }
-        else if (camera.rotation.y < -360.f)
+        else if (camera.GetRotation().y < -360.f)
         {
-            camera.rotation.y += 360.f;
+            camera.SetYaw(camera.GetRotation().y + 360.f);
         }
         
     }
@@ -381,7 +381,7 @@ void Game::UpdateCamera()
         terrain.SmoothenHeightMap(device, 1.25);
 
 
-    camera.position += move;
+    camera.SetPosition(camera.GetPosition() + move);
     camera.Update();
 
     m_view = camera.view;
@@ -397,11 +397,11 @@ void Game::UpdateGUI()
 	if (show_window)
 	{
 		ImGui::Begin("Window", &show_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-        ImGui::Text("Camera Pitch: %f", camera.rotation.x);
-        ImGui::Text("Camera Yaw: %f", camera.rotation.y);
-        ImGui::Text("Camera Position X: %f", camera.position.x);
-        ImGui::Text("Camera Position Y: %f", camera.position.y);
-        ImGui::Text("Camera Position Z: %f", camera.position.z);
+        ImGui::Text("Camera Pitch: %f", camera.GetRotation().x);
+        ImGui::Text("Camera Yaw: %f", camera.GetRotation().y);
+        ImGui::Text("Camera Position X: %f", camera.GetPosition().x);
+        ImGui::Text("Camera Position Y: %f", camera.GetPosition().y);
+        ImGui::Text("Camera Position Z: %f", camera.GetPosition().z);
 
         if (ImGui::Button("Close Me"))
 			show_window = false;
