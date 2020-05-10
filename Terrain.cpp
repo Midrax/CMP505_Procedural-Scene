@@ -582,7 +582,7 @@ bool Terrain::GenerateHeightMap(ID3D11Device* device)
 void Terrain::RandomHeightMap()
 {
 
-	//srand(time(NULL));
+	srand(time(NULL));
 	int index;
 	for (int j = 0; j < m_terrainHeight; j++)
 	{

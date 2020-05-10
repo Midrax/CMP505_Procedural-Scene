@@ -33,7 +33,7 @@ float4 main(InputType input) : SV_TARGET
     float4	color;
 	float blendAmount;
 	float slope = input.normal.y + 1;
-	float threshMin = 0.2f, threshMax = 0.9f;
+	float threshMin = 0.2f, threshMax = 0.65f;
 
 	// Invert the light direction for calculations.
 	lightDir = normalize(input.position3D - lightPosition);
@@ -42,8 +42,6 @@ float4 main(InputType input) : SV_TARGET
 	lightIntensity = saturate(dot(input.normal, -lightDir));
 
 	// Determine the final amount of diffuse color based on the diffuse color combined with the light intensity.
-	color = ambientColor + (diffuseColor * lightIntensity); //adding ambient
-
 	color = ambientColor + (diffuseColor * lightIntensity);
 	// Sample the pixel color from the texture using the sampler at this texture coordinate location.
 	textureColor1 = shaderTexture1.Sample(SampleType, input.tex);
@@ -69,37 +67,16 @@ float4 main(InputType input) : SV_TARGET
 	if (slope <= threshMin) // If blend = 1 Slope Texture is true;
 	{
 		blendAmount = 0;
-		color = color * (((textureColor1 * blendAmount) + (textureColor2 * (1 - blendAmount))) 
-			+ ((textureColor1 * variance) + (textureColor2 * (1 - variance)))) * mf;
 	}
-	if (slope > threshMin && input.normal.y <= threshMax) // If blend = 1 Slope Texture is true;
+	else if (slope > threshMin && input.normal.y <= threshMax)
 	{
 		blendAmount = (slope - threshMin)/(threshMax-threshMin);
-		color = color * (((textureColor3 * blendAmount) + (textureColor2 * (1 - blendAmount)))
-			+ ((textureColor1 * variance) + (textureColor2 * (1 - variance)))) * mf;
 	}
-	if (slope > threshMax) // If blend = 1 Slope Texture is true;
+	else if (slope > threshMax) 
 	{
 		blendAmount = 1;
-		color = color * (((textureColor3 * blendAmount) + (textureColor2 * (1 - blendAmount)))
-			+ ((textureColor1 * variance) + (textureColor2 * (1 - variance)))) * mf;
 	}
-	/*else
-	{
-		float variance = 0;
-		float yValue = input.position3D.y + 2;
-		if (yValue > 0.2) {
-			variance = 1;
-		}
-		else if (yValue < -0.2) {
-			variance = 0;
-		}
-		else {
-			variance = (yValue + 0.2) / 0.4;
-		}
-		color = color * ((textureColor1 * variance) + (textureColor2 * (1 - variance)));
-
-	}*/
+	color = color * (((textureColor1 * variance) + (textureColor2 * (1 - variance))) * (1 - blendAmount) + textureColor3 * blendAmount);
     return color;
 }
 
