@@ -164,6 +164,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="AlignedAllocationPolicy.h" />
     <ClInclude Include="AudioModule.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Delaunay.h" />
@@ -183,12 +184,15 @@
     <ClInclude Include="Light.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="ReadData.h" />
+    <ClInclude Include="ReflectionShader.h" />
     <ClInclude Include="TerrainShader.h" />
     <ClInclude Include="Skydome.h" />
     <ClInclude Include="SkydomeShader.h" />
     <ClInclude Include="StepTimer.h" />
     <ClInclude Include="Terrain.h" />
     <ClInclude Include="Triangle.h" />
+    <ClInclude Include="Water.h" />
+    <ClInclude Include="WaterShader.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AudioModule.cpp" />
@@ -211,11 +215,14 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="ReflectionShader.cpp" />
     <ClCompile Include="TerrainShader.cpp" />
     <ClCompile Include="Skydome.cpp" />
     <ClCompile Include="SkydomeShader.cpp" />
     <ClCompile Include="Terrain.cpp" />
     <ClCompile Include="Triangle.cpp" />
+    <ClCompile Include="Water.cpp" />
+    <ClCompile Include="WaterShader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />
@@ -229,10 +236,34 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="skydome_ps.hlsl" />
-    <None Include="skydome_vs.hlsl" />
+    <None Include="skydome_ps.hlsl">
+      <FileType>Document</FileType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
+    </None>
+    <None Include="skydome_vs.hlsl">
+      <FileType>Document</FileType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
+    </None>
   </ItemGroup>
   <ItemGroup>
+    <None Include="water_ps.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="water_vs.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="reflection_ps.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="reflection_vs.hlsl">
+      <FileType>Document</FileType>
+    </None>
     <FxCompile Include="terrain_ps.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>

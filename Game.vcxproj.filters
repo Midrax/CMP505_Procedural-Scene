@@ -90,6 +90,18 @@
     <ClInclude Include="Triangle.h">
       <Filter>Common</Filter>
     </ClInclude>
+    <ClInclude Include="AlignedAllocationPolicy.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="ReflectionShader.h">
+      <Filter>Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="Water.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="WaterShader.h">
+      <Filter>Shaders</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
@@ -146,6 +158,15 @@
     <ClCompile Include="Triangle.cpp">
       <Filter>Common</Filter>
     </ClCompile>
+    <ClCompile Include="ReflectionShader.cpp">
+      <Filter>Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="Water.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="WaterShader.cpp">
+      <Filter>Shaders</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />
@@ -171,6 +192,14 @@
     <None Include="skydome_vs.hlsl">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="water_ps.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="water_vs.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="reflection_ps.hlsl" />
+    <None Include="reflection_vs.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="terrain_ps.hlsl">

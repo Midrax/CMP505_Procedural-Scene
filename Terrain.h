@@ -58,6 +58,8 @@ public:
 	bool SmoothenHeightMap(ID3D11Device*, float smoothenFactor = 1.f);
 	float* GetWavelength();
 
+	int GetIndexCount();
+
 	float* GetAmplitude();
 	void ReleaseVoronoi();
 	void Shutdown();

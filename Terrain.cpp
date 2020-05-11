@@ -1124,6 +1124,11 @@ float* Terrain::GetWavelength()
 	return &m_wavelength;
 }
 
+int Terrain::GetIndexCount()
+{
+	return m_indexCount;
+}
+
 float* Terrain::GetAmplitude()
 {
 	return &m_amplitude;

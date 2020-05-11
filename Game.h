@@ -14,6 +14,9 @@
 #include "Light.h"
 #include "Terrain.h"
 #include "Skydome.h"
+#include "Water.h"
+#include "WaterShader.h"
+#include "ReflectionShader.h"
 
 // A basic game implementation that creates a D3D11 device and
 // provides a game loop.
@@ -54,6 +57,8 @@ private:
     
     // ImGUI
     void UpdateGUI();
+    void RenderReflection();
+    void RenderRefraction();
     void Render();
 
     void Clear();
@@ -90,8 +95,13 @@ private:
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>    m_mountain_texture;
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>    m_walls_texture;
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>    m_grass_texture;
+    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>    m_water_texture;
 
     Skydome*                                            skydome;
     SkydomeShader*                                      skydomeShader;
+
+    ReflectionShader*                                   reflectionShader;
+    Water*                                              water;
+    WaterShader*                                        waterShader;
 
 };

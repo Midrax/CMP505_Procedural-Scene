@@ -74,6 +74,14 @@ void Game::Initialize(HWND window, int width, int height)
     skydomeShader = new SkydomeShader;
     skydomeShader->Initialize(device, window);
 
+    reflectionShader = new ReflectionShader;
+    reflectionShader->Initialize(device, window);
+
+    water = new Water;
+    water->Initialize(device, L"Assets/water_normal.dds", 3.75f, 110.0f);
+    waterShader = new WaterShader;
+    waterShader->Initialize(device, window);
+
 	// Initialize audio
 	audio.Initialize();
 
@@ -108,12 +116,121 @@ void Game::Update(DX::StepTimer const& timer)
     UpdateCamera();
 	audio.Update();
 	input.Update();
-
+    water->Update();
 	if (inputCommands.escape) {
 		ExitGame();
 	}
 
     elapsedTime;
+}
+
+void Game::UpdateCamera()
+{
+    auto device = m_deviceResources->GetD3DDevice();
+
+    float deltaTime = float(m_timer.GetElapsedSeconds());
+
+    auto mouse = input.mouse->GetState();
+
+    if (!inputCommands.ctrl)
+    {
+        input.mouse->SetMode(Mouse::MODE_RELATIVE);
+    }
+    else
+    {
+        input.mouse->SetMode(Mouse::MODE_ABSOLUTE);
+    }
+    if (mouse.positionMode == Mouse::MODE_RELATIVE)
+    {
+        Vector3 delta = Vector3(float(mouse.x), float(mouse.y), 0.f) * ROTATION_GAIN * deltaTime;
+
+        camera.SetPitch(camera.GetRotation().x - delta.y * ROTATION_GAIN * deltaTime);
+        camera.SetYaw(camera.GetRotation().y - delta.x * ROTATION_GAIN * deltaTime);
+
+        // limit pitch to straight up or straight down
+        // with a little fudge-factor to avoid gimbal lock
+        float limit = 90.0f - 0.01f;
+        camera.SetPitch((std::max)(-limit, camera.GetRotation().x));
+        camera.SetPitch((std::min)(+limit, camera.GetRotation().x));
+
+        if (camera.GetRotation().y > 360.f)
+        {
+            camera.SetYaw(camera.GetRotation().y - 360.f);
+        }
+        else if (camera.GetRotation().y < -360.f)
+        {
+            camera.SetYaw(camera.GetRotation().y + 360.f);
+        }
+
+    }
+
+    Vector3 move = Vector3::Zero;
+
+    if (inputCommands.forward)
+        move += camera.forward;
+
+    if (inputCommands.back)
+        move -= camera.forward;
+
+    if (inputCommands.left)
+        move -= camera.right * MOVEMENT_GAIN;
+
+    if (inputCommands.right)
+        move += camera.right * MOVEMENT_GAIN;
+
+    if (inputCommands.space)
+        move.y += MOVEMENT_GAIN;
+
+    if (inputCommands.q_key)
+        move.y -= MOVEMENT_GAIN;
+
+    move *= MOVEMENT_GAIN * deltaTime;
+
+    if (inputCommands.v_key)
+        terrain.VoronoiDungeon(device);
+    if (inputCommands.n_key)
+        terrain.NoiseHeightMap(device);
+    if (inputCommands.f_key)
+        terrain.Faulting(device);
+    if (inputCommands.r_key)
+        terrain.RandomHeightMap(device);
+    if (inputCommands.x_key)
+        terrain.SmoothenHeightMap(device, 1.25);
+
+
+    camera.SetPosition(camera.GetPosition() + move);
+
+    if (camera.GetPosition().y < -2.5f)
+    { 
+        light.setAmbientColour(0.0f, 0.5f, 0.5f, 1.0f);
+    }
+    else
+        light.setAmbientColour(0.5f, 0.5f, 0.5f, 1.0f);
+    camera.Update();
+
+    m_view = camera.view;
+}
+
+void Game::UpdateGUI()
+{
+    // Start the Dear ImGui frame
+    ImGui_ImplDX11_NewFrame();
+    ImGui_ImplWin32_NewFrame();
+    ImGui::NewFrame();
+    if (show_window)
+    {
+        ImGui::Begin("Window", &show_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
+        ImGui::Text("Camera Pitch: %f", camera.GetRotation().x);
+        ImGui::Text("Camera Yaw: %f", camera.GetRotation().y);
+        ImGui::Text("Camera Position X: %f", camera.GetPosition().x);
+        ImGui::Text("Camera Position Y: %f", camera.GetPosition().y);
+        ImGui::Text("Camera Position Z: %f", camera.GetPosition().z);
+
+        if (ImGui::Button("Close Me"))
+            show_window = false;
+        ImGui::End();
+    }
+
 }
 #pragma endregion
 
@@ -133,6 +250,8 @@ void Game::Render()
     auto device = m_deviceResources->GetD3DDevice();
     auto context = m_deviceResources->GetD3DDeviceContext();
 
+    SimpleMath::Matrix newPosition;
+    SimpleMath::Matrix newRotation;
     // TODO: Add your rendering code here.
 
     // Render Skybox
@@ -143,16 +262,40 @@ void Game::Render()
     skydomeShader->Render(context, skydome->GetIndexCount(), m_world, m_view, m_projection, skydome->GetApexColor(), skydome->GetCenterColor());
     m_deviceResources->TurnOnCulling();
     m_deviceResources->TurnZBufferOn();
+    
+    // Render Water 
+    m_world = SimpleMath::Matrix::Identity;
+    newPosition = SimpleMath::Matrix::CreateTranslation(0.0f, -2.5f, 10.f);
+    newRotation = SimpleMath::Matrix::CreateRotationX(XM_PI);
+    m_world = m_world * newRotation * newPosition;
+    RenderReflection();
+    water->Render(context);
+    waterShader->Render(context, water->GetIndexCount(), m_world, m_view, m_projection, camera.view,
+        m_water_texture.Get(), m_water_texture.Get(), water->GetTexture(),
+        camera.GetPosition(), water->GetNormalMapTiling(), water->GetWaterTranslation(), water->GetReflectRefractScale(),
+        water->GetRefractionTint(), light.getDirection(), water->GetSpecularShininess());
+    context;
 
     // Render Terrain
     m_world = SimpleMath::Matrix::Identity; //set world back to identity
-    SimpleMath::Matrix newPosition3 = Matrix::CreateScale(0.2f) * SimpleMath::Matrix::CreateTranslation(-10.5f, -2.0f, 10.f);
-    SimpleMath::Matrix newRotation = SimpleMath::Matrix::CreateRotationX(XM_PI);
-    m_world = m_world * newRotation * newPosition3;
+    newPosition = Matrix::CreateScale(0.2f) * SimpleMath::Matrix::CreateTranslation(-10.5f, -2.0f, 10.f);
+    newRotation = SimpleMath::Matrix::CreateRotationX(XM_PI);
+    m_world = m_world * newRotation * newPosition;
     terrainShader.EnableShader(context);
     terrainShader.SetShaderParameters(context, &m_world, &(Matrix)m_view, &(Matrix)m_projection, &light, m_grass_texture.Get(), m_mountain_texture.Get(), m_walls_texture.Get());
     terrain.Render(context);
 
+    // Render Water 
+    m_world = SimpleMath::Matrix::Identity;
+    newPosition = SimpleMath::Matrix::CreateTranslation(0.0f, -2.5f, 10.f);
+    newRotation = SimpleMath::Matrix::CreateRotationX(XM_PI);
+    m_world = m_world * newRotation * newPosition;
+    RenderReflection();
+    water->Render(context);
+    waterShader->Render(context, water->GetIndexCount(), m_world, m_view, m_projection, camera.view,
+        m_water_texture.Get(), m_water_texture.Get(), water->GetTexture(),
+        camera.GetPosition(), water->GetNormalMapTiling(), water->GetWaterTranslation(), water->GetReflectRefractScale(),
+        water->GetRefractionTint(), light.getDirection(), water->GetSpecularShininess());
     context;
 
     m_deviceResources->PIXEndEvent();
@@ -163,6 +306,36 @@ void Game::Render()
 
     // Show the new frame.
     m_deviceResources->Present();
+}
+
+void Game::RenderReflection()
+{
+    auto device = m_deviceResources->GetD3DDevice();
+    auto context = m_deviceResources->GetD3DDeviceContext();
+
+    Matrix reflectionViewMatrix, worldMatrix, projectionMatrix;
+
+    Vector4 clipPlane = XMFLOAT4(0.0f, 1.0f, 0.0f, -water->GetWaterHeight());
+
+    camera.RenderReflection(water->GetWaterHeight());
+
+    reflectionViewMatrix = camera.reflectionViewMatrix;
+
+    worldMatrix = m_world;
+    projectionMatrix = m_projection;
+
+    Vector3 cameraPosition = camera.GetPosition();
+
+    cameraPosition.y = -cameraPosition.y + (water->GetWaterHeight() * 2.0f);
+
+    m_deviceResources->TurnOffCulling();
+    m_deviceResources->TurnZBufferOff();
+
+    worldMatrix = m_world;
+
+    reflectionShader->Render(context, terrain.GetIndexCount(), worldMatrix, reflectionViewMatrix, projectionMatrix,
+        m_water_texture.Get(), m_water_texture.Get(), light.getDiffuseColour(), light.getDirection(), 2.0f,
+        clipPlane);
 }
 
 // Helper method to clear the back buffers.
@@ -255,6 +428,7 @@ void Game::CreateDeviceDependentResources()
     CreateDDSTextureFromFile(device, L"Assets/grass.dds", nullptr, m_grass_texture.ReleaseAndGetAddressOf());
     CreateDDSTextureFromFile(device, L"Assets/mountain.dds", nullptr, m_mountain_texture.ReleaseAndGetAddressOf());
     CreateDDSTextureFromFile(device, L"Assets/rock_diffuse.dds", nullptr, m_walls_texture.ReleaseAndGetAddressOf());
+    CreateDDSTextureFromFile(device, L"Assets/water.dds", nullptr, m_water_texture.ReleaseAndGetAddressOf());
     // Terrain
     terrain.Initialize(device, 256, 256);
     terrain.GenerateHeightMap(device);
@@ -297,6 +471,27 @@ void Game::OnDeviceLost()
         skydome = 0;
     }
 
+    if (reflectionShader)
+    {
+        reflectionShader->Shutdown();
+        delete reflectionShader;
+        reflectionShader = 0;
+    }
+
+    if (waterShader)
+    {
+        waterShader->Shutdown();
+        delete waterShader;
+        waterShader = 0;
+    }
+
+    if (water)
+    {
+        water->Shutdown();
+        delete water;
+        water = 0;
+    }
+
     terrain.Shutdown();
 }
 
@@ -305,108 +500,5 @@ void Game::OnDeviceRestored()
     CreateDeviceDependentResources();
 
     CreateWindowSizeDependentResources();
-}
-
-void Game::UpdateCamera()
-{
-    auto device = m_deviceResources->GetD3DDevice();
-
-    float deltaTime = float(m_timer.GetElapsedSeconds());
-
-    auto mouse = input.mouse->GetState();
-
-    if (!inputCommands.ctrl)
-    {
-        input.mouse->SetMode(Mouse::MODE_RELATIVE);
-    }
-    else
-    {
-        input.mouse->SetMode(Mouse::MODE_ABSOLUTE);
-    }
-    if (mouse.positionMode == Mouse::MODE_RELATIVE)
-    {
-        Vector3 delta = Vector3(float(mouse.x), float(mouse.y), 0.f) * ROTATION_GAIN * deltaTime;
-
-        camera.SetPitch(camera.GetRotation().x - delta.y * ROTATION_GAIN * deltaTime);
-        camera.SetYaw(camera.GetRotation().y - delta.x * ROTATION_GAIN * deltaTime);
-
-        // limit pitch to straight up or straight down
-        // with a little fudge-factor to avoid gimbal lock
-        float limit = 90.0f - 0.01f;
-        camera.SetPitch((std::max)(-limit, camera.GetRotation().x));
-        camera.SetPitch((std::min)(+limit, camera.GetRotation().x));
-
-        if (camera.GetRotation().y > 360.f)
-        {
-            camera.SetYaw(camera.GetRotation().y - 360.f);
-        }
-        else if (camera.GetRotation().y < -360.f)
-        {
-            camera.SetYaw(camera.GetRotation().y + 360.f);
-        }
-        
-    }
-
-    Vector3 move = Vector3::Zero;
-
-    if (inputCommands.forward)
-        move += camera.forward;
-
-    if (inputCommands.back)
-        move -= camera.forward;
-
-    if (inputCommands.left)
-        move -= camera.right*MOVEMENT_GAIN;
-
-    if (inputCommands.right)
-        move += camera.right*MOVEMENT_GAIN;
-
-    if (inputCommands.space)
-        move.y += MOVEMENT_GAIN;
-
-    if (inputCommands.q_key)
-        move.y -= MOVEMENT_GAIN;
-
-    move *= MOVEMENT_GAIN * deltaTime;
-
-    if (inputCommands.v_key)
-        terrain.VoronoiDungeon(device);
-    if (inputCommands.n_key)
-        terrain.NoiseHeightMap(device);
-    if (inputCommands.f_key)
-        terrain.Faulting(device);
-    if (inputCommands.r_key)
-        terrain.RandomHeightMap(device);
-    if (inputCommands.x_key)
-        terrain.SmoothenHeightMap(device, 1.25);
-
-
-    camera.SetPosition(camera.GetPosition() + move);
-    camera.Update();
-
-    m_view = camera.view;
-}
-
-
-void Game::UpdateGUI() 
-{
-	// Start the Dear ImGui frame
-	ImGui_ImplDX11_NewFrame();
-	ImGui_ImplWin32_NewFrame();
-	ImGui::NewFrame();
-	if (show_window)
-	{
-		ImGui::Begin("Window", &show_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-        ImGui::Text("Camera Pitch: %f", camera.GetRotation().x);
-        ImGui::Text("Camera Yaw: %f", camera.GetRotation().y);
-        ImGui::Text("Camera Position X: %f", camera.GetPosition().x);
-        ImGui::Text("Camera Position Y: %f", camera.GetPosition().y);
-        ImGui::Text("Camera Position Z: %f", camera.GetPosition().z);
-
-        if (ImGui::Button("Close Me"))
-			show_window = false;
-		ImGui::End();
-	}
-
 }
 #pragma endregion
