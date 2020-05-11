@@ -59,6 +59,7 @@ public:
 	float* GetWavelength();
 
 	int GetIndexCount();
+	std::vector<VoronoiRegion*> GetRooms() { return m_rooms; }
 
 	float* GetAmplitude();
 	void ReleaseVoronoi();

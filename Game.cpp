@@ -89,9 +89,11 @@ void Game::Initialize(HWND window, int width, int height)
 	input.Initialize(window);
 
     // Initialize camera
-    camera.Initialize(START_POSITION.v);
-
-
+    Vector3 start = Vector3(terrain.GetRooms()[0]->vPoint->x,
+                            -10,
+                            -terrain.GetRooms()[0]->vPoint->z);
+    camera.Initialize(start*0.2);
+    // camera.Initialize(START_POSITION.v);
 }
 
 #pragma region Frame Update
@@ -225,6 +227,9 @@ void Game::UpdateGUI()
         ImGui::Text("Camera Position X: %f", camera.GetPosition().x);
         ImGui::Text("Camera Position Y: %f", camera.GetPosition().y);
         ImGui::Text("Camera Position Z: %f", camera.GetPosition().z);
+        ImGui::Text("Room Position X: %f", terrain.GetRooms()[0]->vPoint->x*0.2);
+        ImGui::Text("Room Position Y: %f", terrain.GetRooms()[0]->vPoint->y*0.2);
+        ImGui::Text("Room Position Z: %f", terrain.GetRooms()[0]->vPoint->z*0.2);
 
         if (ImGui::Button("Close Me"))
             show_window = false;
@@ -278,7 +283,7 @@ void Game::Render()
 
     // Render Terrain
     m_world = SimpleMath::Matrix::Identity; //set world back to identity
-    newPosition = Matrix::CreateScale(0.2f) * SimpleMath::Matrix::CreateTranslation(-10.5f, -2.0f, 10.f);
+    newPosition = Matrix::CreateScale(0.2f) * SimpleMath::Matrix::CreateTranslation(0, -2.0f, 0.f);
     newRotation = SimpleMath::Matrix::CreateRotationX(XM_PI);
     m_world = m_world * newRotation * newPosition;
     terrainShader.EnableShader(context);
