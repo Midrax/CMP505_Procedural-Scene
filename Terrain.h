@@ -15,6 +15,7 @@ private:
 		DirectX::SimpleMath::Vector3 position;
 		DirectX::SimpleMath::Vector2 texture;
 		DirectX::SimpleMath::Vector3 normal;
+		float walkable = 0.0f;
 	};
 
 	struct VoronoiPoint {
@@ -50,6 +51,7 @@ public:
 
 	bool Initialize(ID3D11Device*, int terrainWidth, int terrainHeight);
 	void Render(ID3D11DeviceContext*);
+	void Render(ID3D11DeviceContext*, int indexCount);
 	bool GenerateHeightMap(ID3D11Device*);
 	void RandomHeightMap(ID3D11Device*);
 	void Faulting(ID3D11Device*);
@@ -58,7 +60,9 @@ public:
 	bool SmoothenHeightMap(ID3D11Device*, float smoothenFactor = 1.f);
 	float* GetWavelength();
 
-	int GetIndexCount();
+	int GetIndexCount() { return m_indexCount; }
+	int GetVertexCount() { return m_vertexCount; }
+	VertexType* GetVertexArray() { return m_vertices; }
 	std::vector<VoronoiRegion*> GetRooms() { return m_rooms; }
 
 	float* GetAmplitude();
@@ -99,6 +103,7 @@ private:
 	int m_terrainWidth, m_terrainHeight;
 	ID3D11Buffer* m_vertexBuffer, * m_indexBuffer;
 	int m_vertexCount, m_indexCount, m_dungeonDepth;
+	VertexType* m_vertices;
 	float m_frequency, m_amplitude, m_wavelength;
 	HeightMapType* m_heightMap;
 	HeightMapType* m_newHeightMap;

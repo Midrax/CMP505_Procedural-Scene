@@ -49,7 +49,7 @@ public:
     void GetDefaultSize( int& width, int& height ) const;
 
 	// Audio
-	void OnNewAudioDevice() { audio.OnNewAudioDevice(); }
+	void OnNewAudioDevice() { m_audio.OnNewAudioDevice(); }
 private:
 
     void Update(DX::StepTimer const& timer);
@@ -58,7 +58,6 @@ private:
     // ImGUI
     void UpdateGUI();
     void RenderReflection();
-    void RenderRefraction();
     void Render();
 
     void Clear();
@@ -73,35 +72,35 @@ private:
     DX::StepTimer                           m_timer;
     
     // ImGui variables
-    bool                                    show_window = true;
+    bool                                    m_show_window = true;
 
 	// Audio
-	AudioModule								audio;
+	AudioModule								m_audio;
 	// Input System
-	InputSystem								input;
-	InputCommands							inputCommands;
+	InputSystem								m_input;
+	InputCommands							m_inputCommands;
     // Camera                               
-    Camera                                  camera;
+    Camera                                  m_camera;
     // World, View, Projection
     Matrix                                  m_world;
     Matrix                                  m_view;
     Matrix                                  m_projection;
     // Light
-    Light                                   light;
+    Light                                   m_light;
 
     // Terrain
-    Terrain                                             terrain;
-    TerrainShader							            terrainShader;
+    Terrain                                             m_terrain;
+    TerrainShader							            m_terrainShader;
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>    m_mountain_texture;
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>    m_walls_texture;
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>    m_grass_texture;
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>    m_water_texture;
 
-    Skydome*                                            skydome;
-    SkydomeShader*                                      skydomeShader;
+    Skydome*                                            m_skydome;
+    SkydomeShader*                                      m_skydomeShader;
 
-    ReflectionShader*                                   reflectionShader;
-    Water*                                              water;
-    WaterShader*                                        waterShader;
+    ReflectionShader*                                   m_reflectionShader;
+    Water*                                              m_water;
+    WaterShader*                                        m_waterShader;
 
 };

@@ -33,7 +33,7 @@ Game::Game() noexcept(false)
 
 Game::~Game()
 {
-	audio.~AudioModule();
+	m_audio.~AudioModule();
 }
 
 // Initialize the Direct3D resources required to run.
@@ -63,36 +63,36 @@ void Game::Initialize(HWND window, int width, int height)
 	ImGui_ImplDX11_Init(device, context);
 
     // Initialize light
-    light.setAmbientColour(0.5f, 0.5f, 0.5f, 1.0f);
-    light.setDiffuseColour(0.5f, 0.5f, 0.5f, 1.0f);
-    light.setPosition(0.0f, -15.0f, 1.0f);
-    light.setDirection(-1.0f, 1.0f, 1.0f);
+    m_light.setAmbientColour(0.5f, 0.5f, 0.5f, 1.0f);
+    m_light.setDiffuseColour(0.5f, 0.5f, 0.5f, 1.0f);
+    m_light.setPosition(0.0f, -15.0f, 1.0f);
+    m_light.setDirection(-1.0f, 1.0f, 1.0f);
 
     // Initialize Skydome
-    skydome = new Skydome;
-    skydome->Initialize(device);
-    skydomeShader = new SkydomeShader;
-    skydomeShader->Initialize(device, window);
+    m_skydome = new Skydome;
+    m_skydome->Initialize(device);
+    m_skydomeShader = new SkydomeShader;
+    m_skydomeShader->Initialize(device, window);
 
-    reflectionShader = new ReflectionShader;
-    reflectionShader->Initialize(device, window);
+    m_reflectionShader = new ReflectionShader;
+    m_reflectionShader->Initialize(device, window);
 
-    water = new Water;
-    water->Initialize(device, L"Assets/water_normal.dds", 3.75f, 110.0f);
-    waterShader = new WaterShader;
-    waterShader->Initialize(device, window);
+    m_water = new Water;
+    m_water->Initialize(device, L"Assets/water_normal.dds", 3.75f, 110.0f);
+    m_waterShader = new WaterShader;
+    m_waterShader->Initialize(device, window);
 
 	// Initialize audio
-	audio.Initialize();
+	m_audio.Initialize();
 
 	// Initialize input
-	input.Initialize(window);
+	m_input.Initialize(window);
 
     // Initialize camera
-    Vector3 start = Vector3(terrain.GetRooms()[0]->vPoint->x,
+    Vector3 start = Vector3(m_terrain.GetRooms()[0]->vPoint->x,
                             -10,
-                            -terrain.GetRooms()[0]->vPoint->z);
-    camera.Initialize(start*0.2);
+                            -m_terrain.GetRooms()[0]->vPoint->z);
+    m_camera.Initialize(start*0.2);
     // camera.Initialize(START_POSITION.v);
 }
 
@@ -100,7 +100,7 @@ void Game::Initialize(HWND window, int width, int height)
 // Executes the basic game loop.
 void Game::Tick()
 {
-	inputCommands = input.getGameInput();
+	m_inputCommands = m_input.getGameInput();
     m_timer.Tick([&]()
     {
         Update(m_timer);
@@ -116,10 +116,10 @@ void Game::Update(DX::StepTimer const& timer)
 
     // Add your game logic here.
     UpdateCamera();
-	audio.Update();
-	input.Update();
-    water->Update();
-	if (inputCommands.escape) {
+	m_audio.Update();
+	m_input.Update();
+    m_water->Update();
+	if (m_inputCommands.escape) {
 		ExitGame();
 	}
 
@@ -132,85 +132,107 @@ void Game::UpdateCamera()
 
     float deltaTime = float(m_timer.GetElapsedSeconds());
 
-    auto mouse = input.mouse->GetState();
+    auto mouse = m_input.mouse->GetState();
 
-    if (!inputCommands.ctrl)
+    if (!m_inputCommands.ctrl)
     {
-        input.mouse->SetMode(Mouse::MODE_RELATIVE);
+        m_input.mouse->SetMode(Mouse::MODE_RELATIVE);
     }
     else
     {
-        input.mouse->SetMode(Mouse::MODE_ABSOLUTE);
+        m_input.mouse->SetMode(Mouse::MODE_ABSOLUTE);
     }
     if (mouse.positionMode == Mouse::MODE_RELATIVE)
     {
         Vector3 delta = Vector3(float(mouse.x), float(mouse.y), 0.f) * ROTATION_GAIN * deltaTime;
 
-        camera.SetPitch(camera.GetRotation().x - delta.y * ROTATION_GAIN * deltaTime);
-        camera.SetYaw(camera.GetRotation().y - delta.x * ROTATION_GAIN * deltaTime);
+        m_camera.SetPitch(m_camera.GetRotation().x - delta.y * ROTATION_GAIN * deltaTime);
+        m_camera.SetYaw(m_camera.GetRotation().y - delta.x * ROTATION_GAIN * deltaTime);
 
         // limit pitch to straight up or straight down
         // with a little fudge-factor to avoid gimbal lock
         float limit = 90.0f - 0.01f;
-        camera.SetPitch((std::max)(-limit, camera.GetRotation().x));
-        camera.SetPitch((std::min)(+limit, camera.GetRotation().x));
+        m_camera.SetPitch((std::max)(-limit, m_camera.GetRotation().x));
+        m_camera.SetPitch((std::min)(+limit, m_camera.GetRotation().x));
 
-        if (camera.GetRotation().y > 360.f)
+        if (m_camera.GetRotation().y > 360.f)
         {
-            camera.SetYaw(camera.GetRotation().y - 360.f);
+            m_camera.SetYaw(m_camera.GetRotation().y - 360.f);
         }
-        else if (camera.GetRotation().y < -360.f)
+        else if (m_camera.GetRotation().y < -360.f)
         {
-            camera.SetYaw(camera.GetRotation().y + 360.f);
+            m_camera.SetYaw(m_camera.GetRotation().y + 360.f);
         }
 
     }
 
     Vector3 move = Vector3::Zero;
 
-    if (inputCommands.forward)
-        move += camera.forward;
+    if (m_inputCommands.forward)
+        move += m_camera.forward;
 
-    if (inputCommands.back)
-        move -= camera.forward;
+    if (m_inputCommands.back)
+        move -= m_camera.forward;
 
-    if (inputCommands.left)
-        move -= camera.right * MOVEMENT_GAIN;
+    if (m_inputCommands.left)
+        move -= m_camera.right * MOVEMENT_GAIN;
 
-    if (inputCommands.right)
-        move += camera.right * MOVEMENT_GAIN;
+    if (m_inputCommands.right)
+        move += m_camera.right * MOVEMENT_GAIN;
 
-    if (inputCommands.space)
+    if (m_inputCommands.space)
         move.y += MOVEMENT_GAIN;
 
-    if (inputCommands.q_key)
+    if (m_inputCommands.q_key)
         move.y -= MOVEMENT_GAIN;
 
     move *= MOVEMENT_GAIN * deltaTime;
 
-    if (inputCommands.v_key)
-        terrain.VoronoiDungeon(device);
-    if (inputCommands.n_key)
-        terrain.NoiseHeightMap(device);
-    if (inputCommands.f_key)
-        terrain.Faulting(device);
-    if (inputCommands.r_key)
-        terrain.RandomHeightMap(device);
-    if (inputCommands.x_key)
-        terrain.SmoothenHeightMap(device, 1.25);
+    if (m_inputCommands.v_key)
+        m_terrain.VoronoiDungeon(device);
+    if (m_inputCommands.n_key)
+        m_terrain.NoiseHeightMap(device);
+    if (m_inputCommands.f_key)
+        m_terrain.Faulting(device);
+    if (m_inputCommands.r_key)
+        m_terrain.RandomHeightMap(device);
+    if (m_inputCommands.x_key)
+        m_terrain.SmoothenHeightMap(device, 1.25);
 
+    m_camera.SetPosition(m_camera.GetPosition() + move);
 
-    camera.SetPosition(camera.GetPosition() + move);
+    bool result, foundHeight;
+    float posX, posY, posZ, rotX, rotY, rotZ;
+    float height;
+    bool canWalk = false;
+    //foundHeight = m_quadTree->GetHeightAtPosition(m_camera.GetPosition().x, m_camera.GetPosition().z, height, canWalk);
+    float newPosY = m_camera.GetPosition().y;
 
-    if (camera.GetPosition().y < -2.5f)
+    //if (foundHeight)
+    //{
+    //    // If there was a triangle under the camera then position the camera just above it by two units.
+    //    if (posY < 3.0f) {
+    //        newPosY = height + 2.0f;
+    //        if (!canWalk) {
+    //            //collision
+    //            posX = m_camera.oldPosition.x;
+    //            posZ = m_camera.oldPosition.z;
+    //            m_camera.SetPosition(posX, posY, posZ);
+    //        }
+    //    }
+    //}
+
+    
+
+    if (m_camera.GetPosition().y < -2.5f)
     { 
-        light.setAmbientColour(0.0f, 0.5f, 0.5f, 1.0f);
+        m_light.setAmbientColour(0.0f, 0.5f, 0.5f, 1.0f);
     }
     else
-        light.setAmbientColour(0.5f, 0.5f, 0.5f, 1.0f);
-    camera.Update();
+        m_light.setAmbientColour(0.5f, 0.5f, 0.5f, 1.0f);
+    m_camera.Update();
 
-    m_view = camera.view;
+    m_view = m_camera.view;
 }
 
 void Game::UpdateGUI()
@@ -219,20 +241,20 @@ void Game::UpdateGUI()
     ImGui_ImplDX11_NewFrame();
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
-    if (show_window)
+    if (m_show_window)
     {
-        ImGui::Begin("Window", &show_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-        ImGui::Text("Camera Pitch: %f", camera.GetRotation().x);
-        ImGui::Text("Camera Yaw: %f", camera.GetRotation().y);
-        ImGui::Text("Camera Position X: %f", camera.GetPosition().x);
-        ImGui::Text("Camera Position Y: %f", camera.GetPosition().y);
-        ImGui::Text("Camera Position Z: %f", camera.GetPosition().z);
-        ImGui::Text("Room Position X: %f", terrain.GetRooms()[0]->vPoint->x*0.2);
-        ImGui::Text("Room Position Y: %f", terrain.GetRooms()[0]->vPoint->y*0.2);
-        ImGui::Text("Room Position Z: %f", terrain.GetRooms()[0]->vPoint->z*0.2);
+        ImGui::Begin("Window", &m_show_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
+        ImGui::Text("Camera Pitch: %f", m_camera.GetRotation().x);
+        ImGui::Text("Camera Yaw: %f", m_camera.GetRotation().y);
+        ImGui::Text("Camera Position X: %f", m_camera.GetPosition().x);
+        ImGui::Text("Camera Position Y: %f", m_camera.GetPosition().y);
+        ImGui::Text("Camera Position Z: %f", m_camera.GetPosition().z);
+        ImGui::Text("Room Position X: %f", m_terrain.GetRooms()[0]->vPoint->x*0.2);
+        ImGui::Text("Room Position Y: %f", m_terrain.GetRooms()[0]->vPoint->y*0.2);
+        ImGui::Text("Room Position Z: %f", m_terrain.GetRooms()[0]->vPoint->z*0.2);
 
         if (ImGui::Button("Close Me"))
-            show_window = false;
+            m_show_window = false;
         ImGui::End();
     }
 
@@ -262,9 +284,9 @@ void Game::Render()
     // Render Skybox
     m_deviceResources->TurnOffCulling();
     m_deviceResources->TurnZBufferOff();
-    m_world = SimpleMath::Matrix::Identity * Matrix::CreateScale(10.f) * SimpleMath::Matrix::CreateTranslation(camera.GetPosition());
-    skydome->Render(context);
-    skydomeShader->Render(context, skydome->GetIndexCount(), m_world, m_view, m_projection, skydome->GetApexColor(), skydome->GetCenterColor());
+    m_world = SimpleMath::Matrix::Identity * Matrix::CreateScale(10.f) * SimpleMath::Matrix::CreateTranslation(m_camera.GetPosition());
+    m_skydome->Render(context);
+    m_skydomeShader->Render(context, m_skydome->GetIndexCount(), m_world, m_view, m_projection, m_skydome->GetApexColor(), m_skydome->GetCenterColor());
     m_deviceResources->TurnOnCulling();
     m_deviceResources->TurnZBufferOn();
     
@@ -274,11 +296,11 @@ void Game::Render()
     newRotation = SimpleMath::Matrix::CreateRotationX(XM_PI);
     m_world = m_world * newRotation * newPosition;
     RenderReflection();
-    water->Render(context);
-    waterShader->Render(context, water->GetIndexCount(), m_world, m_view, m_projection, camera.view,
-        m_water_texture.Get(), m_water_texture.Get(), water->GetTexture(),
-        camera.GetPosition(), water->GetNormalMapTiling(), water->GetWaterTranslation(), water->GetReflectRefractScale(),
-        water->GetRefractionTint(), light.getDirection(), water->GetSpecularShininess());
+    m_water->Render(context);
+    m_waterShader->Render(context, m_water->GetIndexCount(), m_world, m_view, m_projection, m_camera.view,
+        m_water_texture.Get(), m_water_texture.Get(), m_water->GetTexture(),
+        m_camera.GetPosition(), m_water->GetNormalMapTiling(), m_water->GetWaterTranslation(), m_water->GetReflectRefractScale(),
+        m_water->GetRefractionTint(), m_light.getDirection(), m_water->GetSpecularShininess());
     context;
 
     // Render Terrain
@@ -286,9 +308,9 @@ void Game::Render()
     newPosition = Matrix::CreateScale(0.2f) * SimpleMath::Matrix::CreateTranslation(0, -2.0f, 0.f);
     newRotation = SimpleMath::Matrix::CreateRotationX(XM_PI);
     m_world = m_world * newRotation * newPosition;
-    terrainShader.EnableShader(context);
-    terrainShader.SetShaderParameters(context, &m_world, &(Matrix)m_view, &(Matrix)m_projection, &light, m_grass_texture.Get(), m_mountain_texture.Get(), m_walls_texture.Get());
-    terrain.Render(context);
+    m_terrainShader.EnableShader(context);
+    m_terrainShader.SetShaderParameters(context, &m_world, &(Matrix)m_view, &(Matrix)m_projection, &m_light, m_grass_texture.Get(), m_mountain_texture.Get(), m_walls_texture.Get());
+    m_terrain.Render(context);
 
     // Render Water 
     m_world = SimpleMath::Matrix::Identity;
@@ -296,11 +318,11 @@ void Game::Render()
     newRotation = SimpleMath::Matrix::CreateRotationX(XM_PI);
     m_world = m_world * newRotation * newPosition;
     RenderReflection();
-    water->Render(context);
-    waterShader->Render(context, water->GetIndexCount(), m_world, m_view, m_projection, camera.view,
-        m_water_texture.Get(), m_water_texture.Get(), water->GetTexture(),
-        camera.GetPosition(), water->GetNormalMapTiling(), water->GetWaterTranslation(), water->GetReflectRefractScale(),
-        water->GetRefractionTint(), light.getDirection(), water->GetSpecularShininess());
+    m_water->Render(context);
+    m_waterShader->Render(context, m_water->GetIndexCount(), m_world, m_view, m_projection, m_camera.view,
+        m_water_texture.Get(), m_water_texture.Get(), m_water->GetTexture(),
+        m_camera.GetPosition(), m_water->GetNormalMapTiling(), m_water->GetWaterTranslation(), m_water->GetReflectRefractScale(),
+        m_water->GetRefractionTint(), m_light.getDirection(), m_water->GetSpecularShininess());
     context;
 
     m_deviceResources->PIXEndEvent();
@@ -320,26 +342,24 @@ void Game::RenderReflection()
 
     Matrix reflectionViewMatrix, worldMatrix, projectionMatrix;
 
-    Vector4 clipPlane = XMFLOAT4(0.0f, 1.0f, 0.0f, -water->GetWaterHeight());
+    Vector4 clipPlane = XMFLOAT4(0.0f, 1.0f, 0.0f, -m_water->GetWaterHeight());
 
-    camera.RenderReflection(water->GetWaterHeight());
+    m_camera.RenderReflection(m_water->GetWaterHeight());
 
-    reflectionViewMatrix = camera.reflectionViewMatrix;
+    reflectionViewMatrix = m_camera.reflectionViewMatrix;
 
     worldMatrix = m_world;
     projectionMatrix = m_projection;
 
-    Vector3 cameraPosition = camera.GetPosition();
+    Vector3 cameraPosition = m_camera.GetPosition();
 
-    cameraPosition.y = -cameraPosition.y + (water->GetWaterHeight() * 2.0f);
+    cameraPosition.y = -cameraPosition.y + (m_water->GetWaterHeight() * 2.0f);
 
     m_deviceResources->TurnOffCulling();
     m_deviceResources->TurnZBufferOff();
 
-    worldMatrix = m_world;
-
-    reflectionShader->Render(context, terrain.GetIndexCount(), worldMatrix, reflectionViewMatrix, projectionMatrix,
-        m_water_texture.Get(), m_water_texture.Get(), light.getDiffuseColour(), light.getDirection(), 2.0f,
+    m_reflectionShader->Render(context, m_terrain.GetIndexCount(), worldMatrix, reflectionViewMatrix, projectionMatrix,
+        m_water_texture.Get(), m_water_texture.Get(), m_light.getDiffuseColour(), m_light.getDirection(), 2.0f,
         clipPlane);
 }
 
@@ -370,7 +390,7 @@ void Game::Clear()
 void Game::OnActivated()
 {
     // Game is becoming active window.
-    input.Reset();
+    m_input.Reset();
 }
 
 void Game::OnDeactivated()
@@ -381,7 +401,7 @@ void Game::OnDeactivated()
 void Game::OnSuspending()
 {
     // Game is being power-suspended (or minimized).
-	audio.OnSuspending();
+	m_audio.OnSuspending();
 }
 
 void Game::OnResuming()
@@ -389,8 +409,8 @@ void Game::OnResuming()
     m_timer.ResetElapsedTime();
 
     // Game is being power-resumed (or returning from minimize).
-    input.Reset();
-	audio.OnResuming();
+    m_input.Reset();
+	m_audio.OnResuming();
 }
 
 void Game::OnWindowMoved()
@@ -428,15 +448,15 @@ void Game::CreateDeviceDependentResources()
     // TODO: Initialize device dependent objects here (independent of window size).
 
     // Shader
-    terrainShader.InitStandard(device, L"terrain_vs.cso", L"terrain_ps.cso");
+    m_terrainShader.InitStandard(device, L"terrain_vs.cso", L"terrain_ps.cso");
     // Textures
     CreateDDSTextureFromFile(device, L"Assets/grass.dds", nullptr, m_grass_texture.ReleaseAndGetAddressOf());
     CreateDDSTextureFromFile(device, L"Assets/mountain.dds", nullptr, m_mountain_texture.ReleaseAndGetAddressOf());
     CreateDDSTextureFromFile(device, L"Assets/rock_diffuse.dds", nullptr, m_walls_texture.ReleaseAndGetAddressOf());
     CreateDDSTextureFromFile(device, L"Assets/water.dds", nullptr, m_water_texture.ReleaseAndGetAddressOf());
     // Terrain
-    terrain.Initialize(device, 256, 256);
-    terrain.GenerateHeightMap(device);
+    m_terrain.Initialize(device, 256, 256);
+    m_terrain.GenerateHeightMap(device);
     device;
     context;
 }
@@ -461,43 +481,43 @@ void Game::OnDeviceLost()
 	ImGui::DestroyContext();
 
     // Release the sky dome shader object.
-    if (skydomeShader)
+    if (m_skydomeShader)
     {
-        skydomeShader->Shutdown();
-        delete skydomeShader;
-        skydomeShader = 0;
+        m_skydomeShader->Shutdown();
+        delete m_skydomeShader;
+        m_skydomeShader = 0;
     }
 
     // Release the sky dome object.
-    if (skydome)
+    if (m_skydome)
     {
-        skydome->Shutdown();
-        delete skydome;
-        skydome = 0;
+        m_skydome->Shutdown();
+        delete m_skydome;
+        m_skydome = 0;
     }
 
-    if (reflectionShader)
+    if (m_reflectionShader)
     {
-        reflectionShader->Shutdown();
-        delete reflectionShader;
-        reflectionShader = 0;
+        m_reflectionShader->Shutdown();
+        delete m_reflectionShader;
+        m_reflectionShader = 0;
     }
 
-    if (waterShader)
+    if (m_waterShader)
     {
-        waterShader->Shutdown();
-        delete waterShader;
-        waterShader = 0;
+        m_waterShader->Shutdown();
+        delete m_waterShader;
+        m_waterShader = 0;
     }
 
-    if (water)
+    if (m_water)
     {
-        water->Shutdown();
-        delete water;
-        water = 0;
+        m_water->Shutdown();
+        delete m_water;
+        m_water = 0;
     }
 
-    terrain.Shutdown();
+    m_terrain.Shutdown();
 }
 
 void Game::OnDeviceRestored()

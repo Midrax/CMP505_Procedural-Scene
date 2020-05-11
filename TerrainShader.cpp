@@ -142,3 +142,21 @@ void TerrainShader::EnableShader(ID3D11DeviceContext* context)
 	context->PSSetSamplers(0, 1, &m_sampleState);
 
 }
+
+void TerrainShader::RenderShader(ID3D11DeviceContext* deviceContext, int indexCount)
+{
+	// Set the vertex input layout.
+	deviceContext->IASetInputLayout(m_layout);
+
+	// Set the vertex and pixel shaders that will be used to render this triangle.
+	deviceContext->VSSetShader(m_vertexShader.Get(), NULL, 0);
+	deviceContext->PSSetShader(m_pixelShader.Get(), NULL, 0);
+
+	// Set the sampler state in the pixel shader.
+	deviceContext->PSSetSamplers(0, 1, &m_sampleState);
+
+	// Render the triangle.
+	deviceContext->DrawIndexed(indexCount, 0, 0);
+
+	return;
+}

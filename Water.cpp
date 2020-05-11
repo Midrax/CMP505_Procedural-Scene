@@ -59,7 +59,7 @@ void Water::Shutdown()
 void Water::Update()
 {
 	
-	m_waterTranslation += 0.003f;
+	m_waterTranslation += 0.001f;
 	if (m_waterTranslation > 1.0f)
 	{
 		m_waterTranslation -= 1.0f;

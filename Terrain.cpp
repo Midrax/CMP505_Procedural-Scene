@@ -92,6 +92,15 @@ void Terrain::Render(ID3D11DeviceContext* deviceContext)
 	return;
 }
 
+void Terrain::Render(ID3D11DeviceContext* deviceContext, int indexCount)
+{
+	// Put the vertex and index buffers on the graphics pipeline to prepare them for drawing.
+	RenderBuffers(deviceContext);
+	deviceContext->DrawIndexed(indexCount, 0, 0);
+
+	return;
+}
+
 bool Terrain::CalculateNormals()
 {
 	int i, j, index1, index2, index3, index, count;
@@ -244,12 +253,17 @@ void Terrain::Shutdown()
 		m_vertexBuffer = 0;
 	}
 
+	if (m_vertices)
+	{
+		delete[] m_vertices;
+		m_vertices = 0;
+	}
+
 	return;
 }
 
 bool Terrain::InitializeBuffers(ID3D11Device* device)
 {
-	VertexType* vertices;
 	unsigned long* indices;
 	D3D11_BUFFER_DESC vertexBufferDesc, indexBufferDesc;
 	D3D11_SUBRESOURCE_DATA vertexData, indexData;
@@ -264,8 +278,8 @@ bool Terrain::InitializeBuffers(ID3D11Device* device)
 	m_indexCount = m_vertexCount;
 
 	// Create the vertex array.
-	vertices = new VertexType[m_vertexCount];
-	if (!vertices)
+	m_vertices = new VertexType[m_vertexCount];
+	if (!m_vertices)
 	{
 		return false;
 	}
@@ -295,88 +309,88 @@ bool Terrain::InitializeBuffers(ID3D11Device* device)
 				if (i % 2 == 0)
 				{
 					// Upper left. 
-					vertices[index].position = DirectX::SimpleMath::Vector3(m_heightMap[index3].x, m_heightMap[index3].y, m_heightMap[index3].z);
-					vertices[index].normal = DirectX::SimpleMath::Vector3(m_heightMap[index3].nx, m_heightMap[index3].ny, m_heightMap[index3].nz);
-					vertices[index].texture = DirectX::SimpleMath::Vector2(m_heightMap[index3].x / tilingValue, m_heightMap[index3].z / tilingValue);
+					m_vertices[index].position = DirectX::SimpleMath::Vector3(m_heightMap[index3].x, m_heightMap[index3].y, m_heightMap[index3].z);
+					m_vertices[index].normal = DirectX::SimpleMath::Vector3(m_heightMap[index3].nx, m_heightMap[index3].ny, m_heightMap[index3].nz);
+					m_vertices[index].texture = DirectX::SimpleMath::Vector2(m_heightMap[index3].x / tilingValue, m_heightMap[index3].z / tilingValue);
 					indices[index] = index;
 					index++;
 
 					// Upper right. 
-					vertices[index].position = DirectX::SimpleMath::Vector3(m_heightMap[index4].x, m_heightMap[index4].y, m_heightMap[index4].z);
-					vertices[index].normal = DirectX::SimpleMath::Vector3(m_heightMap[index4].nx, m_heightMap[index4].ny, m_heightMap[index4].nz);
-					vertices[index].texture = DirectX::SimpleMath::Vector2(m_heightMap[index4].x / tilingValue, m_heightMap[index4].z / tilingValue);
+					m_vertices[index].position = DirectX::SimpleMath::Vector3(m_heightMap[index4].x, m_heightMap[index4].y, m_heightMap[index4].z);
+					m_vertices[index].normal = DirectX::SimpleMath::Vector3(m_heightMap[index4].nx, m_heightMap[index4].ny, m_heightMap[index4].nz);
+					m_vertices[index].texture = DirectX::SimpleMath::Vector2(m_heightMap[index4].x / tilingValue, m_heightMap[index4].z / tilingValue);
 					indices[index] = index;
 					index++;
 
 					// Bottom left. 
-					vertices[index].position = DirectX::SimpleMath::Vector3(m_heightMap[index1].x, m_heightMap[index1].y, m_heightMap[index1].z);
-					vertices[index].normal = DirectX::SimpleMath::Vector3(m_heightMap[index1].nx, m_heightMap[index1].ny, m_heightMap[index1].nz);
-					vertices[index].texture = DirectX::SimpleMath::Vector2(m_heightMap[index1].x / tilingValue, m_heightMap[index1].z / tilingValue);
+					m_vertices[index].position = DirectX::SimpleMath::Vector3(m_heightMap[index1].x, m_heightMap[index1].y, m_heightMap[index1].z);
+					m_vertices[index].normal = DirectX::SimpleMath::Vector3(m_heightMap[index1].nx, m_heightMap[index1].ny, m_heightMap[index1].nz);
+					m_vertices[index].texture = DirectX::SimpleMath::Vector2(m_heightMap[index1].x / tilingValue, m_heightMap[index1].z / tilingValue);
 					indices[index] = index;
 					index++;
 
 					// Bottom left. 
-					vertices[index].position = DirectX::SimpleMath::Vector3(m_heightMap[index1].x, m_heightMap[index1].y, m_heightMap[index1].z);
-					vertices[index].normal = DirectX::SimpleMath::Vector3(m_heightMap[index1].nx, m_heightMap[index1].ny, m_heightMap[index1].nz);
-					vertices[index].texture = DirectX::SimpleMath::Vector2(m_heightMap[index1].x / tilingValue, m_heightMap[index1].z / tilingValue);
+					m_vertices[index].position = DirectX::SimpleMath::Vector3(m_heightMap[index1].x, m_heightMap[index1].y, m_heightMap[index1].z);
+					m_vertices[index].normal = DirectX::SimpleMath::Vector3(m_heightMap[index1].nx, m_heightMap[index1].ny, m_heightMap[index1].nz);
+					m_vertices[index].texture = DirectX::SimpleMath::Vector2(m_heightMap[index1].x / tilingValue, m_heightMap[index1].z / tilingValue);
 					indices[index] = index;
 					index++;
 
 					// Upper right. 
-					vertices[index].position = DirectX::SimpleMath::Vector3(m_heightMap[index4].x, m_heightMap[index4].y, m_heightMap[index4].z);
-					vertices[index].normal = DirectX::SimpleMath::Vector3(m_heightMap[index4].nx, m_heightMap[index4].ny, m_heightMap[index4].nz);
-					vertices[index].texture = DirectX::SimpleMath::Vector2(m_heightMap[index4].x / tilingValue, m_heightMap[index4].z / tilingValue);
+					m_vertices[index].position = DirectX::SimpleMath::Vector3(m_heightMap[index4].x, m_heightMap[index4].y, m_heightMap[index4].z);
+					m_vertices[index].normal = DirectX::SimpleMath::Vector3(m_heightMap[index4].nx, m_heightMap[index4].ny, m_heightMap[index4].nz);
+					m_vertices[index].texture = DirectX::SimpleMath::Vector2(m_heightMap[index4].x / tilingValue, m_heightMap[index4].z / tilingValue);
 					indices[index] = index;
 					index++;
 
 					// Bottom right.
-					vertices[index].position = DirectX::SimpleMath::Vector3(m_heightMap[index2].x, m_heightMap[index2].y, m_heightMap[index2].z);
-					vertices[index].normal = DirectX::SimpleMath::Vector3(m_heightMap[index2].nx, m_heightMap[index2].ny, m_heightMap[index2].nz);
-					vertices[index].texture = DirectX::SimpleMath::Vector2(m_heightMap[index2].x / tilingValue, m_heightMap[index2].z / tilingValue);
+					m_vertices[index].position = DirectX::SimpleMath::Vector3(m_heightMap[index2].x, m_heightMap[index2].y, m_heightMap[index2].z);
+					m_vertices[index].normal = DirectX::SimpleMath::Vector3(m_heightMap[index2].nx, m_heightMap[index2].ny, m_heightMap[index2].nz);
+					m_vertices[index].texture = DirectX::SimpleMath::Vector2(m_heightMap[index2].x / tilingValue, m_heightMap[index2].z / tilingValue);
 					indices[index] = index;
 					index++;
 				}
 				else
 				{
 					// Upper left. 
-					vertices[index].position = DirectX::SimpleMath::Vector3(m_heightMap[index3].x, m_heightMap[index3].y, m_heightMap[index3].z);
-					vertices[index].normal = DirectX::SimpleMath::Vector3(m_heightMap[index3].nx, m_heightMap[index3].ny, m_heightMap[index3].nz);
-					vertices[index].texture = DirectX::SimpleMath::Vector2(m_heightMap[index3].x / tilingValue, m_heightMap[index3].z / tilingValue);
+					m_vertices[index].position = DirectX::SimpleMath::Vector3(m_heightMap[index3].x, m_heightMap[index3].y, m_heightMap[index3].z);
+					m_vertices[index].normal = DirectX::SimpleMath::Vector3(m_heightMap[index3].nx, m_heightMap[index3].ny, m_heightMap[index3].nz);
+					m_vertices[index].texture = DirectX::SimpleMath::Vector2(m_heightMap[index3].x / tilingValue, m_heightMap[index3].z / tilingValue);
 					indices[index] = index;
 					index++;
 
 					// Bottom right. 
-					vertices[index].position = DirectX::SimpleMath::Vector3(m_heightMap[index2].x, m_heightMap[index2].y, m_heightMap[index2].z);
-					vertices[index].normal = DirectX::SimpleMath::Vector3(m_heightMap[index2].nx, m_heightMap[index2].ny, m_heightMap[index2].nz);
-					vertices[index].texture = DirectX::SimpleMath::Vector2(m_heightMap[index2].x / tilingValue, m_heightMap[index2].z / tilingValue);
+					m_vertices[index].position = DirectX::SimpleMath::Vector3(m_heightMap[index2].x, m_heightMap[index2].y, m_heightMap[index2].z);
+					m_vertices[index].normal = DirectX::SimpleMath::Vector3(m_heightMap[index2].nx, m_heightMap[index2].ny, m_heightMap[index2].nz);
+					m_vertices[index].texture = DirectX::SimpleMath::Vector2(m_heightMap[index2].x / tilingValue, m_heightMap[index2].z / tilingValue);
 					indices[index] = index;
 					index++;
 
 					// Bottom left. 
-					vertices[index].position = DirectX::SimpleMath::Vector3(m_heightMap[index1].x, m_heightMap[index1].y, m_heightMap[index1].z);
-					vertices[index].normal = DirectX::SimpleMath::Vector3(m_heightMap[index1].nx, m_heightMap[index1].ny, m_heightMap[index1].nz);
-					vertices[index].texture = DirectX::SimpleMath::Vector2(m_heightMap[index1].x / tilingValue, m_heightMap[index1].z / tilingValue);
+					m_vertices[index].position = DirectX::SimpleMath::Vector3(m_heightMap[index1].x, m_heightMap[index1].y, m_heightMap[index1].z);
+					m_vertices[index].normal = DirectX::SimpleMath::Vector3(m_heightMap[index1].nx, m_heightMap[index1].ny, m_heightMap[index1].nz);
+					m_vertices[index].texture = DirectX::SimpleMath::Vector2(m_heightMap[index1].x / tilingValue, m_heightMap[index1].z / tilingValue);
 					indices[index] = index;
 					index++;
 
 					// Bottom right. 
-					vertices[index].position = DirectX::SimpleMath::Vector3(m_heightMap[index2].x, m_heightMap[index2].y, m_heightMap[index2].z);
-					vertices[index].normal = DirectX::SimpleMath::Vector3(m_heightMap[index2].nx, m_heightMap[index2].ny, m_heightMap[index2].nz);
-					vertices[index].texture = DirectX::SimpleMath::Vector2(m_heightMap[index2].x / tilingValue, m_heightMap[index2].z / tilingValue);
+					m_vertices[index].position = DirectX::SimpleMath::Vector3(m_heightMap[index2].x, m_heightMap[index2].y, m_heightMap[index2].z);
+					m_vertices[index].normal = DirectX::SimpleMath::Vector3(m_heightMap[index2].nx, m_heightMap[index2].ny, m_heightMap[index2].nz);
+					m_vertices[index].texture = DirectX::SimpleMath::Vector2(m_heightMap[index2].x / tilingValue, m_heightMap[index2].z / tilingValue);
 					indices[index] = index;
 					index++;
 
 					// Upper left. 
-					vertices[index].position = DirectX::SimpleMath::Vector3(m_heightMap[index3].x, m_heightMap[index3].y, m_heightMap[index3].z);
-					vertices[index].normal = DirectX::SimpleMath::Vector3(m_heightMap[index3].nx, m_heightMap[index3].ny, m_heightMap[index3].nz);
-					vertices[index].texture = DirectX::SimpleMath::Vector2(m_heightMap[index3].x / tilingValue, m_heightMap[index3].z / tilingValue);
+					m_vertices[index].position = DirectX::SimpleMath::Vector3(m_heightMap[index3].x, m_heightMap[index3].y, m_heightMap[index3].z);
+					m_vertices[index].normal = DirectX::SimpleMath::Vector3(m_heightMap[index3].nx, m_heightMap[index3].ny, m_heightMap[index3].nz);
+					m_vertices[index].texture = DirectX::SimpleMath::Vector2(m_heightMap[index3].x / tilingValue, m_heightMap[index3].z / tilingValue);
 					indices[index] = index;
 					index++;
 
 					// Upper right. 
-					vertices[index].position = DirectX::SimpleMath::Vector3(m_heightMap[index4].x, m_heightMap[index4].y, m_heightMap[index4].z);
-					vertices[index].normal = DirectX::SimpleMath::Vector3(m_heightMap[index4].nx, m_heightMap[index4].ny, m_heightMap[index4].nz);
-					vertices[index].texture = DirectX::SimpleMath::Vector2(m_heightMap[index4].x / tilingValue, m_heightMap[index4].z / tilingValue);
+					m_vertices[index].position = DirectX::SimpleMath::Vector3(m_heightMap[index4].x, m_heightMap[index4].y, m_heightMap[index4].z);
+					m_vertices[index].normal = DirectX::SimpleMath::Vector3(m_heightMap[index4].nx, m_heightMap[index4].ny, m_heightMap[index4].nz);
+					m_vertices[index].texture = DirectX::SimpleMath::Vector2(m_heightMap[index4].x / tilingValue, m_heightMap[index4].z / tilingValue);
 					indices[index] = index;
 					index++;
 				}
@@ -386,44 +400,44 @@ bool Terrain::InitializeBuffers(ID3D11Device* device)
 				if (i % 2 == 0)
 				{
 					// Upper left. 
-					vertices[index].position = DirectX::SimpleMath::Vector3(m_heightMap[index3].x, m_heightMap[index3].y, m_heightMap[index3].z);
-					vertices[index].normal = DirectX::SimpleMath::Vector3(m_heightMap[index3].nx, m_heightMap[index3].ny, m_heightMap[index3].nz);
-					vertices[index].texture = DirectX::SimpleMath::Vector2(m_heightMap[index3].x / tilingValue, m_heightMap[index3].z / tilingValue);
+					m_vertices[index].position = DirectX::SimpleMath::Vector3(m_heightMap[index3].x, m_heightMap[index3].y, m_heightMap[index3].z);
+					m_vertices[index].normal = DirectX::SimpleMath::Vector3(m_heightMap[index3].nx, m_heightMap[index3].ny, m_heightMap[index3].nz);
+					m_vertices[index].texture = DirectX::SimpleMath::Vector2(m_heightMap[index3].x / tilingValue, m_heightMap[index3].z / tilingValue);
 					indices[index] = index;
 					index++;
 
 					// Bottom right. 
-					vertices[index].position = DirectX::SimpleMath::Vector3(m_heightMap[index2].x, m_heightMap[index2].y, m_heightMap[index2].z);
-					vertices[index].normal = DirectX::SimpleMath::Vector3(m_heightMap[index2].nx, m_heightMap[index2].ny, m_heightMap[index2].nz);
-					vertices[index].texture = DirectX::SimpleMath::Vector2(m_heightMap[index2].x / tilingValue, m_heightMap[index2].z / tilingValue);
+					m_vertices[index].position = DirectX::SimpleMath::Vector3(m_heightMap[index2].x, m_heightMap[index2].y, m_heightMap[index2].z);
+					m_vertices[index].normal = DirectX::SimpleMath::Vector3(m_heightMap[index2].nx, m_heightMap[index2].ny, m_heightMap[index2].nz);
+					m_vertices[index].texture = DirectX::SimpleMath::Vector2(m_heightMap[index2].x / tilingValue, m_heightMap[index2].z / tilingValue);
 					indices[index] = index;
 					index++;
 
 					// Bottom left. 
-					vertices[index].position = DirectX::SimpleMath::Vector3(m_heightMap[index1].x, m_heightMap[index1].y, m_heightMap[index1].z);
-					vertices[index].normal = DirectX::SimpleMath::Vector3(m_heightMap[index1].nx, m_heightMap[index1].ny, m_heightMap[index1].nz);
-					vertices[index].texture = DirectX::SimpleMath::Vector2(m_heightMap[index1].x / tilingValue, m_heightMap[index1].z / tilingValue);
+					m_vertices[index].position = DirectX::SimpleMath::Vector3(m_heightMap[index1].x, m_heightMap[index1].y, m_heightMap[index1].z);
+					m_vertices[index].normal = DirectX::SimpleMath::Vector3(m_heightMap[index1].nx, m_heightMap[index1].ny, m_heightMap[index1].nz);
+					m_vertices[index].texture = DirectX::SimpleMath::Vector2(m_heightMap[index1].x / tilingValue, m_heightMap[index1].z / tilingValue);
 					indices[index] = index;
 					index++;
 
 					// Bottom right. 
-					vertices[index].position = DirectX::SimpleMath::Vector3(m_heightMap[index2].x, m_heightMap[index2].y, m_heightMap[index2].z);
-					vertices[index].normal = DirectX::SimpleMath::Vector3(m_heightMap[index2].nx, m_heightMap[index2].ny, m_heightMap[index2].nz);
-					vertices[index].texture = DirectX::SimpleMath::Vector2(m_heightMap[index2].x / tilingValue, m_heightMap[index2].z / tilingValue);
+					m_vertices[index].position = DirectX::SimpleMath::Vector3(m_heightMap[index2].x, m_heightMap[index2].y, m_heightMap[index2].z);
+					m_vertices[index].normal = DirectX::SimpleMath::Vector3(m_heightMap[index2].nx, m_heightMap[index2].ny, m_heightMap[index2].nz);
+					m_vertices[index].texture = DirectX::SimpleMath::Vector2(m_heightMap[index2].x / tilingValue, m_heightMap[index2].z / tilingValue);
 					indices[index] = index;
 					index++;
 
 					// Upper left. 
-					vertices[index].position = DirectX::SimpleMath::Vector3(m_heightMap[index3].x, m_heightMap[index3].y, m_heightMap[index3].z);
-					vertices[index].normal = DirectX::SimpleMath::Vector3(m_heightMap[index3].nx, m_heightMap[index3].ny, m_heightMap[index3].nz);
-					vertices[index].texture = DirectX::SimpleMath::Vector2(m_heightMap[index3].x / tilingValue, m_heightMap[index3].z / tilingValue);
+					m_vertices[index].position = DirectX::SimpleMath::Vector3(m_heightMap[index3].x, m_heightMap[index3].y, m_heightMap[index3].z);
+					m_vertices[index].normal = DirectX::SimpleMath::Vector3(m_heightMap[index3].nx, m_heightMap[index3].ny, m_heightMap[index3].nz);
+					m_vertices[index].texture = DirectX::SimpleMath::Vector2(m_heightMap[index3].x / tilingValue, m_heightMap[index3].z / tilingValue);
 					indices[index] = index;
 					index++;
 
 					// Upper right. 
-					vertices[index].position = DirectX::SimpleMath::Vector3(m_heightMap[index4].x, m_heightMap[index4].y, m_heightMap[index4].z);
-					vertices[index].normal = DirectX::SimpleMath::Vector3(m_heightMap[index4].nx, m_heightMap[index4].ny, m_heightMap[index4].nz);
-					vertices[index].texture = DirectX::SimpleMath::Vector2(m_heightMap[index4].x / tilingValue, m_heightMap[index4].z / tilingValue);
+					m_vertices[index].position = DirectX::SimpleMath::Vector3(m_heightMap[index4].x, m_heightMap[index4].y, m_heightMap[index4].z);
+					m_vertices[index].normal = DirectX::SimpleMath::Vector3(m_heightMap[index4].nx, m_heightMap[index4].ny, m_heightMap[index4].nz);
+					m_vertices[index].texture = DirectX::SimpleMath::Vector2(m_heightMap[index4].x / tilingValue, m_heightMap[index4].z / tilingValue);
 					indices[index] = index;
 					index++;
 
@@ -433,44 +447,44 @@ bool Terrain::InitializeBuffers(ID3D11Device* device)
 
 
 					// Upper left. 
-					vertices[index].position = DirectX::SimpleMath::Vector3(m_heightMap[index3].x, m_heightMap[index3].y, m_heightMap[index3].z);
-					vertices[index].normal = DirectX::SimpleMath::Vector3(m_heightMap[index3].nx, m_heightMap[index3].ny, m_heightMap[index3].nz);
-					vertices[index].texture = DirectX::SimpleMath::Vector2(m_heightMap[index3].x / tilingValue, m_heightMap[index3].z / tilingValue);
+					m_vertices[index].position = DirectX::SimpleMath::Vector3(m_heightMap[index3].x, m_heightMap[index3].y, m_heightMap[index3].z);
+					m_vertices[index].normal = DirectX::SimpleMath::Vector3(m_heightMap[index3].nx, m_heightMap[index3].ny, m_heightMap[index3].nz);
+					m_vertices[index].texture = DirectX::SimpleMath::Vector2(m_heightMap[index3].x / tilingValue, m_heightMap[index3].z / tilingValue);
 					indices[index] = index;
 					index++;
 
 					// Upper right. 
-					vertices[index].position = DirectX::SimpleMath::Vector3(m_heightMap[index4].x, m_heightMap[index4].y, m_heightMap[index4].z);
-					vertices[index].normal = DirectX::SimpleMath::Vector3(m_heightMap[index4].nx, m_heightMap[index4].ny, m_heightMap[index4].nz);
-					vertices[index].texture = DirectX::SimpleMath::Vector2(m_heightMap[index4].x / tilingValue, m_heightMap[index4].z / tilingValue);
+					m_vertices[index].position = DirectX::SimpleMath::Vector3(m_heightMap[index4].x, m_heightMap[index4].y, m_heightMap[index4].z);
+					m_vertices[index].normal = DirectX::SimpleMath::Vector3(m_heightMap[index4].nx, m_heightMap[index4].ny, m_heightMap[index4].nz);
+					m_vertices[index].texture = DirectX::SimpleMath::Vector2(m_heightMap[index4].x / tilingValue, m_heightMap[index4].z / tilingValue);
 					indices[index] = index;
 					index++;
 
 					// Bottom left. 
-					vertices[index].position = DirectX::SimpleMath::Vector3(m_heightMap[index1].x, m_heightMap[index1].y, m_heightMap[index1].z);
-					vertices[index].normal = DirectX::SimpleMath::Vector3(m_heightMap[index1].nx, m_heightMap[index1].ny, m_heightMap[index1].nz);
-					vertices[index].texture = DirectX::SimpleMath::Vector2(m_heightMap[index1].x / tilingValue, m_heightMap[index1].z / tilingValue);
+					m_vertices[index].position = DirectX::SimpleMath::Vector3(m_heightMap[index1].x, m_heightMap[index1].y, m_heightMap[index1].z);
+					m_vertices[index].normal = DirectX::SimpleMath::Vector3(m_heightMap[index1].nx, m_heightMap[index1].ny, m_heightMap[index1].nz);
+					m_vertices[index].texture = DirectX::SimpleMath::Vector2(m_heightMap[index1].x / tilingValue, m_heightMap[index1].z / tilingValue);
 					indices[index] = index;
 					index++;
 
 					// Bottom left. 
-					vertices[index].position = DirectX::SimpleMath::Vector3(m_heightMap[index1].x, m_heightMap[index1].y, m_heightMap[index1].z);
-					vertices[index].normal = DirectX::SimpleMath::Vector3(m_heightMap[index1].nx, m_heightMap[index1].ny, m_heightMap[index1].nz);
-					vertices[index].texture = DirectX::SimpleMath::Vector2(m_heightMap[index1].x / tilingValue, m_heightMap[index1].z / tilingValue);
+					m_vertices[index].position = DirectX::SimpleMath::Vector3(m_heightMap[index1].x, m_heightMap[index1].y, m_heightMap[index1].z);
+					m_vertices[index].normal = DirectX::SimpleMath::Vector3(m_heightMap[index1].nx, m_heightMap[index1].ny, m_heightMap[index1].nz);
+					m_vertices[index].texture = DirectX::SimpleMath::Vector2(m_heightMap[index1].x / tilingValue, m_heightMap[index1].z / tilingValue);
 					indices[index] = index;
 					index++;
 
 					// Upper right. 
-					vertices[index].position = DirectX::SimpleMath::Vector3(m_heightMap[index4].x, m_heightMap[index4].y, m_heightMap[index4].z);
-					vertices[index].normal = DirectX::SimpleMath::Vector3(m_heightMap[index4].nx, m_heightMap[index4].ny, m_heightMap[index4].nz);
-					vertices[index].texture = DirectX::SimpleMath::Vector2(m_heightMap[index4].x / tilingValue, m_heightMap[index4].z / tilingValue);
+					m_vertices[index].position = DirectX::SimpleMath::Vector3(m_heightMap[index4].x, m_heightMap[index4].y, m_heightMap[index4].z);
+					m_vertices[index].normal = DirectX::SimpleMath::Vector3(m_heightMap[index4].nx, m_heightMap[index4].ny, m_heightMap[index4].nz);
+					m_vertices[index].texture = DirectX::SimpleMath::Vector2(m_heightMap[index4].x / tilingValue, m_heightMap[index4].z / tilingValue);
 					indices[index] = index;
 					index++;
 
 					// Bottom right.
-					vertices[index].position = DirectX::SimpleMath::Vector3(m_heightMap[index2].x, m_heightMap[index2].y, m_heightMap[index2].z);
-					vertices[index].normal = DirectX::SimpleMath::Vector3(m_heightMap[index2].nx, m_heightMap[index2].ny, m_heightMap[index2].nz);
-					vertices[index].texture = DirectX::SimpleMath::Vector2(m_heightMap[index2].x / tilingValue, m_heightMap[index2].z / tilingValue);
+					m_vertices[index].position = DirectX::SimpleMath::Vector3(m_heightMap[index2].x, m_heightMap[index2].y, m_heightMap[index2].z);
+					m_vertices[index].normal = DirectX::SimpleMath::Vector3(m_heightMap[index2].nx, m_heightMap[index2].ny, m_heightMap[index2].nz);
+					m_vertices[index].texture = DirectX::SimpleMath::Vector2(m_heightMap[index2].x / tilingValue, m_heightMap[index2].z / tilingValue);
 					indices[index] = index;
 					index++;
 				}
@@ -488,7 +502,7 @@ bool Terrain::InitializeBuffers(ID3D11Device* device)
 	vertexBufferDesc.StructureByteStride = 0;
 
 	// Give the subresource structure a pointer to the vertex data.
-	vertexData.pSysMem = vertices;
+	vertexData.pSysMem = m_vertices;
 	vertexData.SysMemPitch = 0;
 	vertexData.SysMemSlicePitch = 0;
 
@@ -520,8 +534,8 @@ bool Terrain::InitializeBuffers(ID3D11Device* device)
 	}
 
 	// Release the arrays now that the vertex and index buffers have been created and loaded.
-	delete[] vertices;
-	vertices = 0;
+	delete[] m_vertices;
+	m_vertices = 0;
 
 	delete[] indices;
 	indices = 0;
@@ -1123,12 +1137,6 @@ float* Terrain::GetWavelength()
 {
 	return &m_wavelength;
 }
-
-int Terrain::GetIndexCount()
-{
-	return m_indexCount;
-}
-
 float* Terrain::GetAmplitude()
 {
 	return &m_amplitude;

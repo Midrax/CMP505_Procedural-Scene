@@ -102,6 +102,7 @@
     <ClInclude Include="WaterShader.h">
       <Filter>Shaders</Filter>
     </ClInclude>
+    <ClInclude Include="Frustum.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
@@ -167,6 +168,7 @@
     <ClCompile Include="WaterShader.cpp">
       <Filter>Shaders</Filter>
     </ClCompile>
+    <ClCompile Include="Frustum.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />
@@ -198,8 +200,12 @@
     <None Include="water_vs.hlsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="reflection_ps.hlsl" />
-    <None Include="reflection_vs.hlsl" />
+    <None Include="reflection_ps.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="reflection_vs.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="terrain_ps.hlsl">
