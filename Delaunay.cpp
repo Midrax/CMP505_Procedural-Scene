@@ -3,7 +3,7 @@
 
 const std::vector<Triangle>& Delaunay::triangulate(std::vector<Vec2f>& vertices)
 {
-	// Store the vertices localy
+	// Store the vertices locally
 	_vertices = vertices;
 
 	// Determinate the super triangle
@@ -30,34 +30,22 @@ const std::vector<Triangle>& Delaunay::triangulate(std::vector<Vec2f>& vertices)
 	Vec2f p2(midx, midy + 20 * deltaMax);
 	Vec2f p3(midx + 20 * deltaMax, midy - deltaMax);
 
-	//std::cout << "Super triangle " << std::endl << Triangle(p1, p2, p3) << std::endl;
-
 	// Create a list of triangles, and add the supertriangle in it
 	_triangles.push_back(Triangle(p1, p2, p3));
 
 	for (auto p = begin(vertices); p != end(vertices); p++)
 	{
-		//std::cout << "Traitement du point " << *p << std::endl;
-		//std::cout << "_triangles contains " << _triangles.size() << " elements" << std::endl;	
-
 		std::vector<Triangle> badTriangles;
 		std::vector<Edge> polygon;
 
 		for (auto t = begin(_triangles); t != end(_triangles); t++)
 		{
-			//std::cout << "Processing " << std::endl << *t << std::endl;
-
 			if (t->circumCircleContains(*p))
 			{
-				//std::cout << "Pushing bad triangle " << *t << std::endl;
 				badTriangles.push_back(*t);
 				polygon.push_back(t->e1);
 				polygon.push_back(t->e2);
 				polygon.push_back(t->e3);
-			}
-			else
-			{
-				//std::cout << " does not contains " << *p << " in his circum center" << std::endl;
 			}
 		}
 
@@ -66,7 +54,6 @@ const std::vector<Triangle>& Delaunay::triangulate(std::vector<Vec2f>& vertices)
 			{
 				if (*bt == t)
 				{
-					//std::cout << "Removing bad triangle " << std::endl << *bt << " from _triangles" << std::endl;
 					return true;
 				}
 			}

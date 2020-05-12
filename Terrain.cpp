@@ -1342,23 +1342,20 @@ bool Terrain::isCircular(int v, bool visited[], vector<int, allocator<int>>** ad
 void Terrain::makeCorridors(const vector<Edge*>& tree) {
 
 	for (int i = 0; i < tree.size(); i++) {
-		//getting index of the point and accessing the index in terms for the heightmap
+		// Getting index of the point and accessing the index in terms for the heightmap
 		int p1Index = m_rooms.at(tree.at(i)->p1.index)->vPoint->index;
 		int p2Index = m_rooms.at(tree.at(i)->p2.index)->vPoint->index;
 
-		//obtaining x1 nad y1 from the given index
+		// Obtaining x1 and y1 from the given index
 		int x1 = p1Index % (m_terrainHeight), x2 = p2Index % (m_terrainHeight);
 		int y1 = p1Index / m_terrainHeight, y2 = p2Index / m_terrainHeight;
 		int ycol1 = y1, ycol2 = y2, xcol1 = x1, xcol2 = x2;
 		bool yswap = false, xswap = false;
-		//checking which one is smaller
+		// Checking which one is smaller
 		if (x1 > x2) {
 			int temp = x1;
 			x1 = x2;
 			x2 = temp;
-			/*xcol1 = x2;
-			xcol2 = x1;
-			*/
 			xswap = true;
 		}
 
@@ -1366,17 +1363,14 @@ void Terrain::makeCorridors(const vector<Edge*>& tree) {
 			int temp = y1;
 			y1 = y2;
 			y2 = temp;
-			/*ycol1 = y2;
-			ycol2 = y1;
-			*/
 			yswap = true;
 		}
 
 		vector<HeightMapType*> c1, c2;
-		//creating columns
+		// Creating columns
 		for (int j = x1; j <= x2; j++)
 		{
-			//giving it a height using the original position of y2
+			// Giving it a height using the original position of y2
 			for (int k = ycol2 - 2; k < ycol2 + 2; k++) {
 				if (m_heightMap[(k * m_terrainHeight) + j].walkable == 0.0f) {
 					int index = (k * m_terrainHeight) + j;
@@ -1384,12 +1378,12 @@ void Terrain::makeCorridors(const vector<Edge*>& tree) {
 					m_heightMap[index].y += m_dungeonDepth;
 				}
 			}
-			//adding the required points to a vector to access later
+			// Adding the required points to a vector to access later
 			c1.push_back(&m_heightMap[(ycol2 * m_terrainHeight) + j]);
 		}
 		for (int j = y1; j <= y2; j++)
 		{
-			//giving it a width using the original position of x1
+			// Giving it a width using the original position of x1
 			for (int k = xcol1 - 2; k < xcol1 + 2; k++) {
 				if (m_heightMap[(j * m_terrainHeight) + k].walkable == 0.0f) {
 					int index = (j * m_terrainHeight) + k;
@@ -1397,11 +1391,11 @@ void Terrain::makeCorridors(const vector<Edge*>& tree) {
 					m_heightMap[index].y += m_dungeonDepth;
 				}
 			}
-			//adding required points to vector to access later
+			// Adding required points to vector to access later
 			c2.push_back(&m_heightMap[(j * m_terrainHeight) + xcol1]);
 		}
 
-		//collecting both the corridors into a main vector
+		// Collecting both the corridors into a main vector
 		m_corridors.push_back(c1);
 		m_corridors.push_back(c2);
 

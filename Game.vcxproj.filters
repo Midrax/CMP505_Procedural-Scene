@@ -51,9 +51,6 @@
     <ClInclude Include="imgui_impl_win32.h">
       <Filter>ImGui</Filter>
     </ClInclude>
-    <ClInclude Include="Camera.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="Light.h">
       <Filter>Rendering</Filter>
     </ClInclude>
@@ -102,7 +99,12 @@
     <ClInclude Include="WaterShader.h">
       <Filter>Shaders</Filter>
     </ClInclude>
-    <ClInclude Include="Frustum.h" />
+    <ClInclude Include="Frustum.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Camera.h">
+      <Filter>Common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
@@ -128,9 +130,6 @@
     </ClCompile>
     <ClCompile Include="imgui_widgets.cpp">
       <Filter>ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="Camera.cpp">
-      <Filter>Rendering</Filter>
     </ClCompile>
     <ClCompile Include="Light.cpp">
       <Filter>Rendering</Filter>
@@ -168,7 +167,12 @@
     <ClCompile Include="WaterShader.cpp">
       <Filter>Shaders</Filter>
     </ClCompile>
-    <ClCompile Include="Frustum.cpp" />
+    <ClCompile Include="Frustum.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="Camera.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />
