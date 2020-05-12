@@ -26,6 +26,7 @@ struct InputCommands
 	bool n_key;
 	bool f_key;
 	bool x_key;
+	bool p_key;
 
 	bool squareButton;
 	bool crossButton;

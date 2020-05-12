@@ -32,6 +32,7 @@ void InputSystem::Initialize(HWND window)
 	m_GameInput.n_key = false;
 	m_GameInput.f_key = false;
 	m_GameInput.x_key = false;
+	m_GameInput.p_key = false;
 
 	// Initialize Controller
 	m_GameInput.squareButton = false;
@@ -207,6 +208,14 @@ void InputSystem::Update()
 	}
 	else
 		m_GameInput.x_key = false;
+
+	if (keys.pressed.P)
+	{
+		m_GameInput.p_key = true;
+	}
+	else
+		m_GameInput.p_key = false;
+
 
 	mouseButtons.Update(mouse->GetState());
 }

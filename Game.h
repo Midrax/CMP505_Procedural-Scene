@@ -17,6 +17,7 @@
 #include "Water.h"
 #include "WaterShader.h"
 #include "ReflectionShader.h"
+#include "PostProcess.h"
 
 // A basic game implementation that creates a D3D11 device and
 // provides a game loop.
@@ -105,4 +106,9 @@ private:
     Water*                                              m_water;
     WaterShader*                                        m_waterShader;
 
+    std::unique_ptr<BasicPostProcess>                   m_postProcess;
+    Microsoft::WRL::ComPtr<ID3D11Texture2D>             m_sceneTex;
+    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>    m_sceneSRV;
+    Microsoft::WRL::ComPtr<ID3D11RenderTargetView>      m_sceneRT;
+    int                                                 postProcessLoop = 0;
 };

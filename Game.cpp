@@ -93,7 +93,26 @@ void Game::Initialize(HWND window, int width, int height)
                             -10,
                             -m_terrain.GetRooms()[0]->vPoint->z);
     m_camera.Initialize(start*0.2);
-    // camera.Initialize(START_POSITION.v);
+
+    m_postProcess = std::make_unique<BasicPostProcess>(device);
+
+    CD3D11_TEXTURE2D_DESC sceneDesc(
+        DXGI_FORMAT_R16G16B16A16_FLOAT, width, height,
+        1, 1, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE);
+
+    DX::ThrowIfFailed(
+        device->CreateTexture2D(&sceneDesc, nullptr, m_sceneTex.GetAddressOf())
+    );
+
+    DX::ThrowIfFailed(
+        device->CreateShaderResourceView(m_sceneTex.Get(), nullptr,
+            m_sceneSRV.ReleaseAndGetAddressOf())
+    );
+
+    DX::ThrowIfFailed(
+        device->CreateRenderTargetView(m_sceneTex.Get(), nullptr,
+            m_sceneRT.ReleaseAndGetAddressOf()
+        ));
 }
 
 #pragma region Frame Update
@@ -198,6 +217,13 @@ void Game::UpdateCamera()
         m_terrain.RandomHeightMap(device);
     if (m_inputCommands.x_key)
         m_terrain.SmoothenHeightMap(device, 1.25);
+    if (m_inputCommands.p_key)
+    {
+        if (postProcessLoop < 4)
+            postProcessLoop++;
+        else
+            postProcessLoop = 0;
+    }
 
     m_camera.SetPosition(m_camera.GetPosition() + move);
 
@@ -249,17 +275,17 @@ void Game::UpdateGUI()
     ImGui::NewFrame();
     if (m_show_window)
     {
-        ImGui::Begin("Window", &m_show_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-        //ImGui::Text("Camera Pitch: %f", m_camera.GetRotation().x);
-        //ImGui::Text("Camera Yaw: %f", m_camera.GetRotation().y);
+        ImGui::Begin("Controls", &m_show_window);
+        ImGui::Text("Press R to add Random Noise");
+        ImGui::Text("Press F to add Faulting");
+        ImGui::Text("Press N to add Perlin Noise");
+        ImGui::Text("Press V to add Voronoi Regions");
+        ImGui::Text("Press X to add Smoothening");
+        ImGui::Text("Press P to loop between Post Processing effects");
         ImGui::Text("Camera Position X: %f", m_camera.GetPosition().x);
         ImGui::Text("Camera Position Y: %f", m_camera.GetPosition().y);
         ImGui::Text("Camera Position Z: %f", m_camera.GetPosition().z);
-        ImGui::Text("distance from ground: %f", m_camera.GetPosition().y-debug_float+2);
-        //ImGui::Text("Room Position X: %f", m_terrain.GetRooms()[0]->vPoint->x*0.2);
-        //ImGui::Text("Room Position Y: %f", m_terrain.GetRooms()[0]->vPoint->y*0.2);
-        //ImGui::Text("Room Position Z: %f", m_terrain.GetRooms()[0]->vPoint->z*0.2);
-
+        ImGui::Text("Ground Distance: %f", m_camera.GetPosition().y-debug_float+2);
         if (ImGui::Button("Close Me"))
             m_show_window = false;
         ImGui::End();
@@ -283,10 +309,17 @@ void Game::Render()
     m_deviceResources->PIXBeginEvent(L"Render");
     auto device = m_deviceResources->GetD3DDevice();
     auto context = m_deviceResources->GetD3DDeviceContext();
+    auto renderTarget = m_deviceResources->GetRenderTargetView();
+    auto depthStencil = m_deviceResources->GetDepthStencilView();
+    context->ClearRenderTargetView(m_sceneRT.Get(), Colors::CornflowerBlue);
+    context->ClearDepthStencilView(depthStencil, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+    context->OMSetRenderTargets(1, m_sceneRT.GetAddressOf(), depthStencil);
 
     SimpleMath::Matrix newPosition;
     SimpleMath::Matrix newRotation;
     // TODO: Add your rendering code here.
+
+
 
     // Render Skybox
     m_deviceResources->TurnOffCulling();
@@ -332,13 +365,36 @@ void Game::Render()
         m_water->GetRefractionTint(), m_light.getDirection(), m_water->GetSpecularShininess());
     context;
 
+    m_deviceResources->TurnOnCulling();
+    m_deviceResources->TurnZBufferOn();
+
     m_deviceResources->PIXEndEvent();
 
-    
-	ImGui::Render();
-	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
-
     // Show the new frame.
+
+    context->OMSetRenderTargets(1, &renderTarget, depthStencil);
+    if (postProcessLoop == 0)
+    {
+        m_postProcess->SetEffect(BasicPostProcess::Copy);
+    }
+    if (postProcessLoop == 1)
+    {
+        m_postProcess->SetEffect(BasicPostProcess::BloomBlur);
+    }
+    if (postProcessLoop == 2)
+    {
+        m_postProcess->SetEffect(BasicPostProcess::Monochrome);
+    }
+    if (postProcessLoop == 3)
+    {
+        m_postProcess->SetEffect(BasicPostProcess::Sepia);
+    }
+    m_postProcess->SetSourceTexture(m_sceneSRV.Get());
+    m_postProcess->Process(context);
+
+    ImGui::Render();
+    ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+
     m_deviceResources->Present();
 }
 
