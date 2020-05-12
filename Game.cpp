@@ -285,7 +285,8 @@ void Game::UpdateGUI()
         ImGui::Text("Camera Position X: %f", m_camera.GetPosition().x);
         ImGui::Text("Camera Position Y: %f", m_camera.GetPosition().y);
         ImGui::Text("Camera Position Z: %f", m_camera.GetPosition().z);
-        ImGui::Text("Ground Distance: %f", m_camera.GetPosition().y-debug_float+2);
+        float dist = m_camera.GetPosition().y - debug_float + 2;
+        ImGui::Text("Ground Distance: %f", dist);
         if (ImGui::Button("Close Me"))
             m_show_window = false;
         ImGui::End();
@@ -496,8 +497,8 @@ void Game::OnWindowSizeChanged(int width, int height)
 void Game::GetDefaultSize(int& width, int& height) const
 {
     // TODO: Change to desired default window size (note minimum size is 320x200).
-    width = 800;
-    height = 600;
+    width = 1024;
+    height = 768;
 }
 #pragma endregion
 
@@ -515,7 +516,7 @@ void Game::CreateDeviceDependentResources()
     // Textures
     CreateDDSTextureFromFile(device, L"Assets/grass.dds", nullptr, m_grass_texture.ReleaseAndGetAddressOf());
     CreateDDSTextureFromFile(device, L"Assets/mountain.dds", nullptr, m_mountain_texture.ReleaseAndGetAddressOf());
-    CreateDDSTextureFromFile(device, L"Assets/rock_diffuse.dds", nullptr, m_walls_texture.ReleaseAndGetAddressOf());
+    CreateDDSTextureFromFile(device, L"Assets/rock.dds", nullptr, m_walls_texture.ReleaseAndGetAddressOf());
     CreateDDSTextureFromFile(device, L"Assets/water.dds", nullptr, m_water_texture.ReleaseAndGetAddressOf());
     // Terrain
     m_terrain.Initialize(device, 256, 256);
