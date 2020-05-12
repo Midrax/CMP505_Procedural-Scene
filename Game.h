@@ -73,8 +73,10 @@ private:
     
     // ImGui variables
     bool                                    m_show_window = true;
-
-	// Audio
+    Vector3                                 debug_vector;
+    float                                   debug_float;
+	
+    // Audio
 	AudioModule								m_audio;
 	// Input System
 	InputSystem								m_input;

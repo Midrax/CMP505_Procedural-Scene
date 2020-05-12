@@ -202,25 +202,31 @@ void Game::UpdateCamera()
     m_camera.SetPosition(m_camera.GetPosition() + move);
 
     bool result, foundHeight;
-    float posX, posY, posZ, rotX, rotY, rotZ;
+    float posX = m_camera.GetPosition().x; 
+    float posY = m_camera.GetPosition().y;
+    float posZ = -m_camera.GetPosition().z;
+    
     float height;
     bool canWalk = false;
-    //foundHeight = m_quadTree->GetHeightAtPosition(m_camera.GetPosition().x, m_camera.GetPosition().z, height, canWalk);
+    foundHeight = m_terrain.GetHeightAtPosition(posX / 0.2, posZ / 0.2, height, canWalk);
     float newPosY = m_camera.GetPosition().y;
 
-    //if (foundHeight)
-    //{
-    //    // If there was a triangle under the camera then position the camera just above it by two units.
-    //    if (posY < 3.0f) {
-    //        newPosY = height + 2.0f;
-    //        if (!canWalk) {
-    //            //collision
-    //            posX = m_camera.oldPosition.x;
-    //            posZ = m_camera.oldPosition.z;
-    //            m_camera.SetPosition(posX, posY, posZ);
-    //        }
-    //    }
-    //}
+    debug_float = -(height)*0.2;
+    float distanceFromGround = m_camera.GetPosition().y - debug_float + 2;
+    if (foundHeight)
+    {
+        // If there was a triangle under the camera then position the camera just above it by two units.
+        if (distanceFromGround < 0.02f) {
+            posX = m_camera.oldPosition.x;
+            posZ = m_camera.oldPosition.z;
+            m_camera.SetPositionY(newPosY);
+            newPosY = m_camera.GetPosition().y + 0.05f;
+            if (!canWalk) {
+                //collision
+                m_camera.SetPosition(posX, newPosY, posZ);
+            }
+        }
+    }
 
     
 
@@ -244,14 +250,15 @@ void Game::UpdateGUI()
     if (m_show_window)
     {
         ImGui::Begin("Window", &m_show_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-        ImGui::Text("Camera Pitch: %f", m_camera.GetRotation().x);
-        ImGui::Text("Camera Yaw: %f", m_camera.GetRotation().y);
+        //ImGui::Text("Camera Pitch: %f", m_camera.GetRotation().x);
+        //ImGui::Text("Camera Yaw: %f", m_camera.GetRotation().y);
         ImGui::Text("Camera Position X: %f", m_camera.GetPosition().x);
         ImGui::Text("Camera Position Y: %f", m_camera.GetPosition().y);
         ImGui::Text("Camera Position Z: %f", m_camera.GetPosition().z);
-        ImGui::Text("Room Position X: %f", m_terrain.GetRooms()[0]->vPoint->x*0.2);
-        ImGui::Text("Room Position Y: %f", m_terrain.GetRooms()[0]->vPoint->y*0.2);
-        ImGui::Text("Room Position Z: %f", m_terrain.GetRooms()[0]->vPoint->z*0.2);
+        ImGui::Text("distance from ground: %f", m_camera.GetPosition().y-debug_float+2);
+        //ImGui::Text("Room Position X: %f", m_terrain.GetRooms()[0]->vPoint->x*0.2);
+        //ImGui::Text("Room Position Y: %f", m_terrain.GetRooms()[0]->vPoint->y*0.2);
+        //ImGui::Text("Room Position Z: %f", m_terrain.GetRooms()[0]->vPoint->z*0.2);
 
         if (ImGui::Button("Close Me"))
             m_show_window = false;

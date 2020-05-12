@@ -3,9 +3,13 @@
 #include "DVector2.h"
 #include "Triangle.h"
 #include "Delaunay.h"
+#include "Frustum.h"
+#include "TerrainShader.h"
 
 using namespace std;
 using namespace DirectX;
+
+const int MAX_TRIANGLES = 10000;
 
 class Terrain
 {
@@ -45,6 +49,22 @@ private:
 		float walkable = 0.0f;
 	};
 
+	struct VectorType
+	{
+		float x, y, z;
+		float walkable = 0.0f;
+	};
+
+	struct NodeType
+	{
+		float positionX, positionZ, width;
+		int triangleCount;
+		ID3D11Buffer* vertexBuffer, * indexBuffer;
+		NodeType* nodes[4];
+		VectorType* vertexArray;
+		int* mainTextureIndex;
+	};
+
 public:
 	Terrain();
 	~Terrain();
@@ -64,6 +84,8 @@ public:
 	int GetVertexCount() { return m_vertexCount; }
 	VertexType* GetVertexArray() { return m_vertices; }
 	std::vector<VoronoiRegion*> GetRooms() { return m_rooms; }
+
+	bool GetHeightAtPosition(float, float, float&, bool& canWalk);
 
 	float* GetAmplitude();
 	void ReleaseVoronoi();
@@ -98,6 +120,18 @@ private:
 	void makeCorridors(const vector<Edge*>& tree);
 	float GetWalkableValue(float i, float j);
 
+	void ReinitializeBuffers(ID3D11Device* device);
+	int GetDrawCount();
+	Vector3 CalculateMeshDimensions(int);
+	void CreateTreeNode(NodeType*, float, float, float, ID3D11Device*);
+	int CountTriangles(float, float, float);
+	bool IsTriangleContained(int, float, float, float);
+	void ResetNodeBuffers(NodeType*, ID3D11Device*);
+	void ReleaseNode(NodeType*);
+	//void RenderNode(NodeType*, Frustum*, ID3D11DeviceContext*, TerrainShader*);
+	void FindNode(NodeType*, float, float, float&, bool& canWalk);
+	bool CheckHeightOfTriangle(float, float, float&, float[3], float[3], float[3]);
+
 private:
 	bool m_terrainGeneratedToggle;
 	int m_terrainWidth, m_terrainHeight;
@@ -121,5 +155,10 @@ private:
 	vector<VoronoiPoint*>* m_VPoints;
 	std::vector<VoronoiRegion*>	m_rooms;
 	std::vector<std::vector<HeightMapType*>> m_corridors;
+
+	// QuadTree Variables
+	int m_triangleCount, m_drawCount;
+	VertexType* m_vertexList;
+	NodeType* m_parentNode;
 };
 
