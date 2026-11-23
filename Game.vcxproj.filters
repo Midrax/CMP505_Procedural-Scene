@@ -17,6 +17,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="vcpkg.json" />
+    <None Include="README.md" />
     <None Include="scripts\Setup-Dependencies.ps1">
       <Filter>scripts</Filter>
     </None>
