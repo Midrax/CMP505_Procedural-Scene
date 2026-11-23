@@ -3,6 +3,10 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
+# Local dependency tooling and generated build output
+build/
+vcpkg_installed/
+
 # User-specific files
 *.suo
 *.user

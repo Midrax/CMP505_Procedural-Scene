@@ -1,225 +1,184 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Common">
-      <UniqueIdentifier>ecd5c287-3f17-46f0-bbd3-d0efeb4d476a</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Assets">
-      <UniqueIdentifier>195d573d-c2f4-4327-a593-6ff8b5d127fc</UniqueIdentifier>
-      <Extensions>ico;cur;bmp;dds;dlg;fbx;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tga;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
-    <Filter Include="ImGui">
-      <UniqueIdentifier>{0862a586-55de-4443-b305-edd3ff90e61a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Rendering">
-      <UniqueIdentifier>{a2d7fb87-a952-4f29-a9e2-bba2009a9163}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Shaders">
-      <UniqueIdentifier>{ff84de43-b24c-434e-9c72-8f0a9163ceae}</UniqueIdentifier>
-    </Filter>
+    <Filter Include="scripts" />
+    <Filter Include="Assets" />
+    <Filter Include="resources" />
+    <Filter Include="shaders" />
+    <Filter Include="src" />
+    <Filter Include="src\app" />
+    <Filter Include="src\audio" />
+    <Filter Include="src\core" />
+    <Filter Include="src\graphics" />
+    <Filter Include="src\graphics\shaders" />
+    <Filter Include="src\input" />
+    <Filter Include="src\procedural" />
+    <Filter Include="src\world" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="pch.h" />
-    <ClInclude Include="Game.h" />
-    <ClInclude Include="StepTimer.h">
-      <Filter>Common</Filter>
+    <None Include="vcpkg.json" />
+    <None Include="scripts\Setup-Dependencies.ps1">
+      <Filter>scripts</Filter>
+    </None>
+    <ClInclude Include="src\core\AlignedAllocationPolicy.h">
+      <Filter>src\core</Filter>
     </ClInclude>
-    <ClInclude Include="DeviceResources.h">
-      <Filter>Common</Filter>
+    <ClInclude Include="src\audio\AudioModule.h">
+      <Filter>src\audio</Filter>
     </ClInclude>
-    <ClInclude Include="imgui.h">
-      <Filter>ImGui</Filter>
+    <ClInclude Include="src\graphics\Camera.h">
+      <Filter>src\graphics</Filter>
     </ClInclude>
-    <ClInclude Include="imgui_impl_dx11.h">
-      <Filter>ImGui</Filter>
+    <ClInclude Include="src\procedural\Delaunay.h">
+      <Filter>src\procedural</Filter>
     </ClInclude>
-    <ClInclude Include="imconfig.h">
-      <Filter>ImGui</Filter>
+    <ClInclude Include="src\graphics\DeviceResources.h">
+      <Filter>src\graphics</Filter>
     </ClInclude>
-    <ClInclude Include="imgui_internal.h">
-      <Filter>ImGui</Filter>
+    <ClInclude Include="src\procedural\DVector2.h">
+      <Filter>src\procedural</Filter>
     </ClInclude>
-    <ClInclude Include="imstb_rectpack.h">
-      <Filter>ImGui</Filter>
+    <ClInclude Include="src\procedural\Edge.h">
+      <Filter>src\procedural</Filter>
     </ClInclude>
-    <ClInclude Include="imstb_textedit.h">
-      <Filter>ImGui</Filter>
+    <ClInclude Include="src\graphics\Frustum.h">
+      <Filter>src\graphics</Filter>
     </ClInclude>
-    <ClInclude Include="imstb_truetype.h">
-      <Filter>ImGui</Filter>
+    <ClInclude Include="src\app\Game.h">
+      <Filter>src\app</Filter>
     </ClInclude>
-    <ClInclude Include="imgui_impl_win32.h">
-      <Filter>ImGui</Filter>
+    <ClInclude Include="src\input\InputSystem.h">
+      <Filter>src\input</Filter>
     </ClInclude>
-    <ClInclude Include="Light.h">
-      <Filter>Rendering</Filter>
+    <ClInclude Include="src\graphics\Light.h">
+      <Filter>src\graphics</Filter>
     </ClInclude>
-    <ClInclude Include="AudioModule.h">
-      <Filter>Common</Filter>
+    <ClInclude Include="src\core\pch.h">
+      <Filter>src\core</Filter>
     </ClInclude>
-    <ClInclude Include="InputSystem.h">
-      <Filter>Common</Filter>
+    <ClInclude Include="src\core\ReadData.h">
+      <Filter>src\core</Filter>
     </ClInclude>
-    <ClInclude Include="ReadData.h">
-      <Filter>Common</Filter>
+    <ClInclude Include="src\graphics\shaders\ReflectionShader.h">
+      <Filter>src\graphics\shaders</Filter>
     </ClInclude>
-    <ClInclude Include="Skydome.h">
-      <Filter>Rendering</Filter>
+    <ClInclude Include="src\graphics\shaders\TerrainShader.h">
+      <Filter>src\graphics\shaders</Filter>
     </ClInclude>
-    <ClInclude Include="Terrain.h">
-      <Filter>Rendering</Filter>
+    <ClInclude Include="src\world\Skydome.h">
+      <Filter>src\world</Filter>
     </ClInclude>
-    <ClInclude Include="SkydomeShader.h">
-      <Filter>Shaders</Filter>
+    <ClInclude Include="src\graphics\shaders\SkydomeShader.h">
+      <Filter>src\graphics\shaders</Filter>
     </ClInclude>
-    <ClInclude Include="TerrainShader.h">
-      <Filter>Shaders</Filter>
+    <ClInclude Include="src\core\StepTimer.h">
+      <Filter>src\core</Filter>
     </ClInclude>
-    <ClInclude Include="Delaunay.h">
-      <Filter>Common</Filter>
+    <ClInclude Include="src\world\Terrain.h">
+      <Filter>src\world</Filter>
     </ClInclude>
-    <ClInclude Include="Edge.h">
-      <Filter>Common</Filter>
+    <ClInclude Include="src\procedural\Triangle.h">
+      <Filter>src\procedural</Filter>
     </ClInclude>
-    <ClInclude Include="DVector2.h">
-      <Filter>Common</Filter>
+    <ClInclude Include="src\world\Water.h">
+      <Filter>src\world</Filter>
     </ClInclude>
-    <ClInclude Include="Triangle.h">
-      <Filter>Common</Filter>
+    <ClInclude Include="src\graphics\shaders\WaterShader.h">
+      <Filter>src\graphics\shaders</Filter>
     </ClInclude>
-    <ClInclude Include="AlignedAllocationPolicy.h">
-      <Filter>Common</Filter>
-    </ClInclude>
-    <ClInclude Include="ReflectionShader.h">
-      <Filter>Shaders</Filter>
-    </ClInclude>
-    <ClInclude Include="Water.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="WaterShader.h">
-      <Filter>Shaders</Filter>
-    </ClInclude>
-    <ClInclude Include="Frustum.h">
-      <Filter>Common</Filter>
-    </ClInclude>
-    <ClInclude Include="Camera.h">
-      <Filter>Common</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="pch.cpp" />
-    <ClCompile Include="Game.cpp" />
-    <ClCompile Include="Main.cpp" />
-    <ClCompile Include="DeviceResources.cpp">
-      <Filter>Common</Filter>
+    <ClCompile Include="src\audio\AudioModule.cpp">
+      <Filter>src\audio</Filter>
     </ClCompile>
-    <ClCompile Include="imgui.cpp">
-      <Filter>ImGui</Filter>
+    <ClCompile Include="src\graphics\Camera.cpp">
+      <Filter>src\graphics</Filter>
     </ClCompile>
-    <ClCompile Include="imgui_impl_dx11.cpp">
-      <Filter>ImGui</Filter>
+    <ClCompile Include="src\procedural\Delaunay.cpp">
+      <Filter>src\procedural</Filter>
     </ClCompile>
-    <ClCompile Include="imgui_demo.cpp">
-      <Filter>ImGui</Filter>
+    <ClCompile Include="src\graphics\DeviceResources.cpp">
+      <Filter>src\graphics</Filter>
     </ClCompile>
-    <ClCompile Include="imgui_draw.cpp">
-      <Filter>ImGui</Filter>
+    <ClCompile Include="src\graphics\Frustum.cpp">
+      <Filter>src\graphics</Filter>
     </ClCompile>
-    <ClCompile Include="imgui_impl_win32.cpp">
-      <Filter>ImGui</Filter>
+    <ClCompile Include="src\app\Game.cpp">
+      <Filter>src\app</Filter>
     </ClCompile>
-    <ClCompile Include="imgui_widgets.cpp">
-      <Filter>ImGui</Filter>
+    <ClCompile Include="src\app\GameUI.cpp">
+      <Filter>src\app</Filter>
     </ClCompile>
-    <ClCompile Include="Light.cpp">
-      <Filter>Rendering</Filter>
+    <ClCompile Include="src\input\InputSystem.cpp">
+      <Filter>src\input</Filter>
     </ClCompile>
-    <ClCompile Include="AudioModule.cpp">
-      <Filter>Common</Filter>
+    <ClCompile Include="src\graphics\Light.cpp">
+      <Filter>src\graphics</Filter>
     </ClCompile>
-    <ClCompile Include="InputSystem.cpp">
-      <Filter>Common</Filter>
+    <ClCompile Include="src\app\Main.cpp">
+      <Filter>src\app</Filter>
     </ClCompile>
-    <ClCompile Include="Skydome.cpp">
-      <Filter>Rendering</Filter>
+    <ClCompile Include="src\core\pch.cpp">
+      <Filter>src\core</Filter>
     </ClCompile>
-    <ClCompile Include="Terrain.cpp">
-      <Filter>Rendering</Filter>
+    <ClCompile Include="src\graphics\shaders\ReflectionShader.cpp">
+      <Filter>src\graphics\shaders</Filter>
     </ClCompile>
-    <ClCompile Include="SkydomeShader.cpp">
-      <Filter>Shaders</Filter>
+    <ClCompile Include="src\graphics\shaders\TerrainShader.cpp">
+      <Filter>src\graphics\shaders</Filter>
     </ClCompile>
-    <ClCompile Include="TerrainShader.cpp">
-      <Filter>Shaders</Filter>
+    <ClCompile Include="src\world\Skydome.cpp">
+      <Filter>src\world</Filter>
     </ClCompile>
-    <ClCompile Include="Delaunay.cpp">
-      <Filter>Common</Filter>
+    <ClCompile Include="src\graphics\shaders\SkydomeShader.cpp">
+      <Filter>src\graphics\shaders</Filter>
     </ClCompile>
-    <ClCompile Include="Triangle.cpp">
-      <Filter>Common</Filter>
+    <ClCompile Include="src\world\Terrain.cpp">
+      <Filter>src\world</Filter>
     </ClCompile>
-    <ClCompile Include="ReflectionShader.cpp">
-      <Filter>Shaders</Filter>
+    <ClCompile Include="src\procedural\Triangle.cpp">
+      <Filter>src\procedural</Filter>
     </ClCompile>
-    <ClCompile Include="Water.cpp">
-      <Filter>Rendering</Filter>
+    <ClCompile Include="src\world\Water.cpp">
+      <Filter>src\world</Filter>
     </ClCompile>
-    <ClCompile Include="WaterShader.cpp">
-      <Filter>Shaders</Filter>
+    <ClCompile Include="src\graphics\shaders\WaterShader.cpp">
+      <Filter>src\graphics\shaders</Filter>
     </ClCompile>
-    <ClCompile Include="Frustum.cpp">
-      <Filter>Common</Filter>
-    </ClCompile>
-    <ClCompile Include="Camera.cpp">
-      <Filter>Common</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="resource.rc" />
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="directx.ico">
-      <Filter>Assets</Filter>
-    </Image>
+    <ResourceCompile Include="resources\resource.rc">
+      <Filter>resources</Filter>
+    </ResourceCompile>
     <Image Include="Assets\grass.dds">
       <Filter>Assets</Filter>
     </Image>
-  </ItemGroup>
-  <ItemGroup>
-    <Manifest Include="settings.manifest">
-      <Filter>Assets</Filter>
+    <Image Include="resources\directx.ico">
+      <Filter>resources</Filter>
+    </Image>
+    <Manifest Include="resources\settings.manifest">
+      <Filter>resources</Filter>
     </Manifest>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
-    <None Include="skydome_ps.hlsl">
-      <Filter>Shaders</Filter>
+    <None Include="shaders\skydome_ps.hlsl">
+      <Filter>shaders</Filter>
     </None>
-    <None Include="skydome_vs.hlsl">
-      <Filter>Shaders</Filter>
+    <None Include="shaders\skydome_vs.hlsl">
+      <Filter>shaders</Filter>
     </None>
-    <None Include="water_ps.hlsl">
-      <Filter>Shaders</Filter>
+    <None Include="shaders\water_ps.hlsl">
+      <Filter>shaders</Filter>
     </None>
-    <None Include="water_vs.hlsl">
-      <Filter>Shaders</Filter>
+    <None Include="shaders\water_vs.hlsl">
+      <Filter>shaders</Filter>
     </None>
-    <None Include="reflection_ps.hlsl">
-      <Filter>Shaders</Filter>
+    <None Include="shaders\reflection_ps.hlsl">
+      <Filter>shaders</Filter>
     </None>
-    <None Include="reflection_vs.hlsl">
-      <Filter>Shaders</Filter>
+    <None Include="shaders\reflection_vs.hlsl">
+      <Filter>shaders</Filter>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="terrain_ps.hlsl">
-      <Filter>Shaders</Filter>
+    <FxCompile Include="shaders\terrain_ps.hlsl">
+      <Filter>shaders</Filter>
     </FxCompile>
-    <FxCompile Include="terrain_vs.hlsl">
-      <Filter>Shaders</Filter>
+    <FxCompile Include="shaders\terrain_vs.hlsl">
+      <Filter>shaders</Filter>
     </FxCompile>
-  </ItemGroup>
-  <ItemGroup>
     <Text Include="Assets\skydome.txt">
       <Filter>Assets</Filter>
     </Text>
